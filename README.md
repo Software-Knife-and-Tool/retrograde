@@ -1,2 +1,2 @@
-# lumino
-lumen flask app
+# Lumino
+lumen flask app server

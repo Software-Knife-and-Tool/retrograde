@@ -1,0 +1,12 @@
+[Unit]
+Description=GRAFCH service
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+ExecStart=/opt/grafch/grafch-daemon
+
+[Install]
+WantedBy=multi-user.target

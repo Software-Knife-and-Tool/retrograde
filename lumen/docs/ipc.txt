@@ -1,0 +1,15 @@
+{ "event": "button1" }
+{ "event": "button2" }
+{ "event": "button3" }
+{ "event": "timer" }
+{ "event": "alarm" }
+{ "grafch": "time" }
+{ "grafch": "date" }
+{ "grafch": "blank" }
+{ "grafch": "unblank" }
+{ "grafch": "return" }
+{ "grafch": { "delay": 500 } }
+{ "grafch": { "tube": 0, "state": true } }
+{ "grafch": { "digit": 5, "value": 5 } }
+{ "grafch": { "rotor": [ { "grafch": "time" }, { "grafch": "return" } ] } }
+

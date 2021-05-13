@@ -8,7 +8,7 @@
 
 ##########
 ##
-## rotor NCS31X driver
+## NCS31X rotor
 ##
 ###########
 
@@ -53,36 +53,46 @@ def string_to_color(str):
 
     return [r, g, b];
 
-def get_rep(str, start):
-    bits = 0
+def display_string(digits):
+    def get_rep(str, start):
+        bits = 0
 
-    bits = (_tube_map[str[start] - 0x30]) << 20
-    bits |= (_tube_map[str[start - 1] - 0x30]) << 10
-    bits |= (_tube_map[str[start - 2] - 0x30])
+        bits = (_tube_map[int(str[start])]) << 20
+        bits |= (_tube_map[int(str[start - 1])]) << 10
+        bits |= (_tube_map[int(str[start - 2])])
   
-    return bits
+        return bits
 
-def fill_buffer(nval, buffer, start):
-    buffer[start] = nval >> 24
-    buffer[start + 1] = nval >> 16
-    buffer[start + 2] = nval >> 8
-    buffer[start + 3] = nval
+    def add_blink_to_rep(bits):
+        if dotState:
+            bits &=~ _LOWER_DOTS_MASK
+            bits &=~ _UPPER_DOTS_MASK
+        else:
+            bits |= _LOWER_DOTS_MASK
+            bits |= _UPPER_DOTS_MASK
+  
+        return bits
 
-    return buffer;
+    def fill_buffer(nval, buffer, start):
+        buffer[start] = nval >> 24
+        buffer[start + 1] = nval >> 16
+        buffer[start + 2] = nval >> 8
+        buffer[start + 3] = nval
 
-def display_string(str):
+        return buffer;
+
     wiringpi.pinMode(_LE_PIN, _OUTPUT)
     if cfg.dotState
       dot_blink()
 
-    rep_bits = get_rep(const_cast<char*>(cstr), LEFT_REPR_START)
+    rep_bits = get_rep(str, LEFT_REPR_START)
     rep_bits = add_blink_to_rep(rep_bits)
 
-    buffer = "00000000"
+    buffer = [x for x in range(8)]
 
     fill_buffer(rep_bits, buffer, _LEFT_BUFFER_START)
 
-    rep_bits = get_rep(const_cast<char*>(cstr), RIGHT_REPR_START)
+    rep_bits = get_rep(digits, RIGHT_REPR_START)
     rep_bits = add_blink_to_rep(rep_bits)
 
     fill_buffer(rep_bits, buffer, _RIGHT_BUFFER_START)
@@ -112,16 +122,6 @@ def dot_blink():
         lastTimeBlink = wiringpi.millis()
         dot_state = !dot_state
   
-def add_blink_to_rep(var):
-    if dotState:
-        var &=~ _LOWER_DOTS_MASK
-        var &=~ _UPPER_DOTS_MASK
-    else:
-        var |= _LOWER_DOTS_MASK
-        var |= _UPPER_DOTS_MASK
-  
-    return var
-
 # flash with date
 def flash_date(seconds):
     n = 0

@@ -1,0 +1,12 @@
+@font-face {
+    font-family: 'Magneto';
+    src: url('/static/css/MAGNETOB.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'DymaxionScript';
+    src: url('/static/css/DYMAXION.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}

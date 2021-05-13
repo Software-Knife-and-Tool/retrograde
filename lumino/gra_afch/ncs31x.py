@@ -47,6 +47,8 @@ _MAX_POWER = 100
 _UPPER_DOTS_MASK = 0x80000000
 _LOWER_DOTS_MASK = 0x40000000
 
+_ncsHV5222 = None
+    
 def _bcd_to_dec(val):
     return (val / 16 * 10) + (val % 16)
 
@@ -139,8 +141,8 @@ def get_rtc_date(gpio):
     
     return time.mktime(now)
 
-def display(str):
-    def reverse_bits(nval):
+def display(tubes):
+    def rev_bits(nval):
         reversed = 0
 
         i = 0
@@ -149,13 +151,22 @@ def display(str):
                 reversed |= 1 << (63 - i)
   
         return reversed
+    
+    def list_to_bits(lst):
+        bits = 0
 
+        for n in range(8):
+            bits |= lst[0]
+            bits <<= 8
+
+        return bits
+            
     wiringpi.pinMode(_LE_PIN, _OUTPUT)
     wiringpi.digitalWrite(_LE_PIN, _LOW)
 
-    display = str
+    display = tubes
     if _ncsHV5222:
-        reverse = reverse_bits(*(uint64_t*)display)
+        reverse = rev_bits(lst_to_bits(display))
 
         display[4] = reverse
         display[5] = reverse >> 8
@@ -196,6 +207,6 @@ def ncs31x():
     wiringpi.pinMode(_R5222_PIN, _INPUT)
     wiringpi.pullUpDnControl(_R5222_PIN, _PUD_UP)
 
-    _ncsHV5222 = !wiringpi.digitalRead(_R5222_PIN)
+    _ncsHV5222 = not(wiringpi.digitalRead(_R5222_PIN))
 
     return gpio

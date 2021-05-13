@@ -1,0 +1,185 @@
+##########
+##
+##  SPDX-License-Identifier: MIT
+##
+##  Copyright (c) 2017-2022 James M. Putnam <putnamjm.design@gmail.com>
+##
+##########
+
+##########
+##
+## rotor NCS31X driver
+##
+###########
+
+import wiringpi
+import ncs31x
+
+from time import time, localtime
+
+_LEFT_REPR_START = 5
+_LEFT_BUFFER_START = 0
+_RIGHT_REPR_START = 2
+_RIGHT_BUFFER_START = 4
+
+_tube_map = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
+
+def scale_rgb(nval):
+    return int(nval / 2.55)
+
+def string_to_color(str):
+    def ctoi(nib):
+        nval = 0
+
+        if nib >= '0' & nib <= '9':
+            nval = nib - '0'
+        elif nib >= 'a' & nib <= 'f':
+            nval = nib - 'a' + 10;
+        elif (nib >= 'A' & nib <= 'F'):
+            nval = nib - 'A' + 10
+        else:
+            nval = -1
+        return nval
+
+    def channel(msn, lsn):
+        m = ctoi(msn);
+        l = ctoi(lsn);
+
+        return (m < 0 | l < 0) if -1 else (m << 4) + l
+
+    r = channel(str[0], str[1])
+    g = channel(str[2], str[3])
+    b = channel(str[4], str[5])
+
+    return [r, g, b];
+
+def get_rep(str, start):
+    bits = 0
+
+    bits = (_tube_map[str[start] - 0x30]) << 20
+    bits |= (_tube_map[str[start - 1] - 0x30]) << 10
+    bits |= (_tube_map[str[start - 2] - 0x30])
+  
+    return bits
+
+def fill_buffer(nval, buffer, start):
+    buffer[start] = nval >> 24
+    buffer[start + 1] = nval >> 16
+    buffer[start + 2] = nval >> 8
+    buffer[start + 3] = nval
+
+    return buffer;
+
+def display_string(str):
+    wiringpi.pinMode(_LE_PIN, _OUTPUT)
+    if cfg.dotState
+      dot_blink()
+
+    rep_bits = get_rep(const_cast<char*>(cstr), LEFT_REPR_START)
+    rep_bits = add_blink_to_rep(rep_bits)
+
+    buffer = "00000000"
+
+    fill_buffer(rep_bits, buffer, _LEFT_BUFFER_START)
+
+    rep_bits = get_rep(const_cast<char*>(cstr), RIGHT_REPR_START)
+    rep_bits = add_blink_to_rep(rep_bits)
+
+    fill_buffer(rep_bits, buffer, _RIGHT_BUFFER_START)
+
+    ncs31x.display(buffer)
+
+def display_date():
+    display_string(time.strftime('%m%d%y', time.localtime()))
+
+def display_time():
+    display_string(rtc.strftime('%H%M%S', ncs31x.get_rtc_date())
+
+def update_backlight(color):
+    default = [0xff, 0x40, 0x0]
+
+    if color is None:
+        color = default
+                   
+    ncs31x.set_backlight([scale_rgb(color[0]),
+                          scale_rgb(color[1]),
+                          scale_rgb(color[2])])
+
+def dot_blink():
+    last_time_blink = wiringpi.millis()
+
+    if ((wiringpi.millis() - last_time_blink) >= 1000):
+        lastTimeBlink = wiringpi.millis()
+        dot_state = !dot_state
+  
+def add_blink_to_rep(var):
+    if dotState:
+        var &=~ _LOWER_DOTS_MASK
+        var &=~ _UPPER_DOTS_MASK
+    else:
+        var |= _LOWER_DOTS_MASK
+        var |= _UPPER_DOTS_MASK
+  
+    return var
+
+# flash with date
+def flash_date(seconds):
+    n = 0
+    
+    while n < seconds:
+        ncs31x.blank()
+        wiringpi.delay(500)
+        ncs31x.unblank()
+        display_date()
+        wiringpi.delay(500)
+        n++
+        
+    if cfg.backState:
+        update_backlight(cfg.backColor)
+
+# flash with time
+def flash_time(seconds):
+    n = 0
+    
+    while n < seconds:
+        ncs31x.blank()
+        wiringpi.delay(500)
+        ncs31x.unblank()
+        display_time()
+        wiringpi.delay(500)
+        n++
+        
+    if cfg.backState
+        initBacklight(cfg.backColor)
+
+def buttons():
+    # auto pin = _MODE_BUTTON_PIN
+    init_pin(_UP_BUTTON_PIN)
+    init_pin(_DOWN_BUTTON_PIN)
+    init_pin(_MODE_BUTTON_PIN)
+
+#    wiringpi.wiringPiISR(_MODE_BUTTON_PIN, _INT_EDGE_RISING,
+#                    static unsigned long debounce = 0
+# 
+#                    if ((wiringpi.millis() - debounce) > DEBOUNCE_DELAY):
+#
+#
+#                    [&pin, mutex]() . void:
+#                      if (mutex.try_lock()):
+#                        pin = MODE_BUTTON_PIN
+#                        mutex.unlock()
+#                       else
+#                        yield()
+#                    )
+#
+#    wiringpi.wiringPiISR(UP_BUTTON_PIN, INT_EDGE_RISING,
+#                    [&pin, mutex]() . void:
+#                      pin = UP_BUTTON_PIN
+#                      mutex.unlock()
+#                    )
+#
+#    wiringpi.wiringPiISR(DOWN_BUTTON_PIN, INT_EDGE_RISING,
+#                    [&pin, mutex]() . void:
+#                      pin = DOWN_BUTTON_PIN
+#                      mutex.unlock()
+#                    )

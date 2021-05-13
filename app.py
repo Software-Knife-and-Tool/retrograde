@@ -1,6 +1,7 @@
 import os
 import socket
 import lumino
+# import gra_afch
 import time
 
 from datetime import date, datetime
@@ -43,4 +44,6 @@ def init():
                            + time.localtime().tm_zone,
                            )
 
-socketio.run(app)
+if __name__ == '__main__':
+    socketio.run(app, host='0.0.0.0')
+#    socketio.run(app, host='0.0.0.0', debug=True)

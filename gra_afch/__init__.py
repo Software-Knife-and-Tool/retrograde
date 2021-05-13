@@ -13,6 +13,7 @@
 ###########
 
 import wiringpi
+from datetime import date, datetime
 
 # GPIO constants
 _R5222_PIN = 22
@@ -54,7 +55,7 @@ _tube_map = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
 
 _ncsHV5222 = False
 _conf_dict = None
-_gpioFd = None
+_gpio = None
 
 def string_to_color(str):
     def ctoi(nib):
@@ -95,26 +96,14 @@ def unblank():
     wiringpi.digitalWrite(_BLUE_LIGHT_PIN, HIGH)
     wiringpi.digitalWrite(_LE_PIN, HIGH)
 
-def date():
-#    char displayCString[8]
-#
-#    auto now = time(NULL)
-#    auto date = localtime(&now)
-#
-#    const char* format = '%m%d%y'
-#    strftime(displayCString, 8, format, date)
-#  
-#    Display(displayCString)
-    return 'date'
+def display_host_date():
+    date = datetime.now().strftime('%m%d%y')
+    display(date)
+    return date
 
-def time():
-#    char displayCString[8]
-#
-#    tm date = getRTCDate()
-#    time_t seconds = time(NULL)
-#    tm* timeinfo = localtime (&seconds)
-#
-#    # NOTE:  RTC relies on system to keep time (e.g. NTP assisted for accuracy).
+def display_rtc_time():
+    now = get_rtc_date()
+    return now
 #    if (cfg.useSystemRTC):
 #      seconds = time(NULL)
 #      timeinfo = localtime (&seconds)
@@ -133,12 +122,11 @@ def time():
 #    strftime(displayCString, 8, format, &date)
 #
 #    Display(displayCString)
-    return 'time'
     
-def bcdToDec(val):
+def bcd_to_dec(val):
     return (val / 16 * 10) + (val % 16)
 
-def decToBcd(val):
+def dec_to_bcd(val):
     return (val / 10 * 16) + (val % 10)
 
 def scale_rgb(nval):
@@ -155,7 +143,7 @@ def reverse_bits(nval):
     return reversed
 
 # numeric string to bits
-def get32_rep(str, start):
+def get_rep(str, start):
     bits = 0
 
     bits = (_tube_map[str[start] - 0x30]) << 20
@@ -169,6 +157,8 @@ def fill_buffer(nval, buffer, start):
     buffer[start + 1] = nval >> 16
     buffer[start + 2] = nval >> 8
     buffer[start + 3] = nval
+
+    return buffer;
 
 def init_pin(pin):
     wiringpi.pinMode(pin, INPUT)
@@ -204,7 +194,7 @@ def func_down():
 func_down.debounce = 0
 
 def buttons():
-    # auto pin = MODE_BUTTON_PIN
+    # auto pin = _MODE_BUTTON_PIN
     init_pin(_UP_BUTTON_PIN)
     init_pin(_DOWN_BUTTON_PIN)
     init_pin(_MODE_BUTTON_PIN)
@@ -235,86 +225,77 @@ def buttons():
 #                      mutex.unlock()
 #                    )
 
+# figure out a fixed-width binary
+# date struct.
 def get_rtc_date():
-    tm date
-    
-    wiringpi.wiringPiI2CWrite(_gpioFd, _I2CFlush)
+    date = datetime.now()
 
-    date.tm_sec =  bcdToDec(wiringpi.wiringPiI2CReadReg8(_gpioFd, _SECOND_REGISTER))
-    date.tm_min =  bcdToDec(wiringpi.wiringPiI2CReadReg8(_gpioFd, _MINUTE_REGISTER))
+    # date = datetime.now().strftime('%m%d%y')
+    
+    wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
+
+    date.tm_sec =  bcdToDec(wiringpi.wiringPiI2CReadReg8(_gpio, _SECOND_REGISTER))
+    date.tm_min =  bcdToDec(wiringpi.wiringPiI2CReadReg8(_gpio, _MINUTE_REGISTER))
 
     if use12hour:
-        date.tm_hour = bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpioFd, HOUR_REGISTER))
+        date.tm_hour = bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio, HOUR_REGISTER))
     if date.tm_hour > 12:
         date.tm_hour -= 12
     else:
-        date.tm_hour = bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpioFd, HOUR_REGISTER))
+        date.tm_hour = bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio, HOUR_REGISTER))
 
-    date.tm_wday = bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpioFd, WEEK_REGISTER))
-    date.tm_mday = bcdToDec(wiringpi.wiringPiI2CReadReg8(_gpioFd, DAY_REGISTER))
-    date.tm_mon =  bcdToDec(wiringpi.wiringPiI2CReadReg8(_gpioFd, MONTH_REGISTER))
-    date.tm_year = bcdToDec(wiringpi.wiringPiI2CReadReg8(_gpioFd, YEAR_REGISTER))
+    date.tm_wday = bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio, WEEK_REGISTER))
+    date.tm_mday = bcdToDec(wiringpi.wiringPiI2CReadReg8(_gpio, DAY_REGISTER))
+    date.tm_mon =  bcdToDec(wiringpi.wiringPiI2CReadReg8(_gpio, MONTH_REGISTER))
+    date.tm_year = bcdToDec(wiringpi.wiringPiI2CReadReg8(_gpio, YEAR_REGISTER))
     date.tm_isdst = 0
     
     return date
 
 def updateRTCHour(tm date):
-    wiringpi.wiringPiI2CWrite(_gpioFd, I2CFlush)
-    wiringpi.wiringPiI2CWriteReg8(_gpioFd, HOUR_REGISTER, decToBcd(date.tm_hour))
-    wiringpi.wiringPiI2CWrite(_gpioFd, I2CFlush)
+    wiringpi.wiringPiI2CWrite(_gpio, I2CFlush)
+    wiringpi.wiringPiI2CWriteReg8(_gpio, HOUR_REGISTER, decToBcd(date.tm_hour))
+    wiringpi.wiringPiI2CWrite(_gpio, I2CFlush)
 
 def updateRTCMinute(tm date):
-    wiringpi.wiringPiI2CWrite(_gpioFd, I2CFlush)
-    wiringpi.wiringPiI2CWriteReg8(_gpioFd, MINUTE_REGISTER, decToBcd(date.tm_min))
-    wiringpi.wiringPiI2CWriteReg8(_gpioFd, HOUR_REGISTER, decToBcd(date.tm_hour))
-    wiringpi.wiringPiI2CWrite(_gpioFd, I2CFlush)
+    wiringpi.wiringPiI2CWrite(_gpio, I2CFlush)
+    wiringpi.wiringPiI2CWriteReg8(_gpio, MINUTE_REGISTER, decToBcd(date.tm_min))
+    wiringpi.wiringPiI2CWriteReg8(_gpio, HOUR_REGISTER, decToBcd(date.tm_hour))
+    wiringpi.wiringPiI2CWrite(_gpio, I2CFlush)
 
 def resetRTCSecond():
-    wiringpi.wiringPiI2CWrite(_gpioFd, I2CFlush)
-    wiringpi.wiringPiI2CWriteReg8(_gpioFd, SECOND_REGISTER, 0)
-    wiringpi.wiringPiI2CWrite(_gpioFd, I2CFlush)
+    wiringpi.wiringPiI2CWrite(_gpio, I2CFlush)
+    wiringpi.wiringPiI2CWriteReg8(_gpio, SECOND_REGISTER, 0)
+    wiringpi.wiringPiI2CWrite(_gpio, I2CFlush)
 
 def writeRTCDate(tm date):
-    wiringpi.wiringPiI2CWrite(_gpioFd, I2CFlush)
-    wiringpi.wiringPiI2CWriteReg8(_gpioFd, SECOND_REGISTER, decToBcd(date.tm_sec))
-    wiringpi.wiringPiI2CWriteReg8(_gpioFd, MINUTE_REGISTER, decToBcd(date.tm_min))
-    wiringpi.wiringPiI2CWriteReg8(_gpioFd, HOUR_REGISTER, decToBcd(date.tm_hour))
-    wiringpi.wiringPiI2CWriteReg8(_gpioFd, WEEK_REGISTER, decToBcd(date.tm_wday))
-    wiringpi.wiringPiI2CWriteReg8(_gpioFd, DAY_REGISTER, decToBcd(date.tm_mday))
-    wiringpi.wiringPiI2CWriteReg8(_gpioFd, MONTH_REGISTER, decToBcd(date.tm_mon))
-    wiringpi.wiringPiI2CWriteReg8(_gpioFd, YEAR_REGISTER, decToBcd(date.tm_year))
-    wiringpi.wiringPiI2CWrite(_gpioFd, I2CFlush)
+    wiringpi.wiringPiI2CWrite(_gpio, I2CFlush)
+    wiringpi.wiringPiI2CWriteReg8(_gpio, SECOND_REGISTER, decToBcd(date.tm_sec))
+    wiringpi.wiringPiI2CWriteReg8(_gpio, MINUTE_REGISTER, decToBcd(date.tm_min))
+    wiringpi.wiringPiI2CWriteReg8(_gpio, HOUR_REGISTER, decToBcd(date.tm_hour))
+    wiringpi.wiringPiI2CWriteReg8(_gpio, WEEK_REGISTER, decToBcd(date.tm_wday))
+    wiringpi.wiringPiI2CWriteReg8(_gpio, DAY_REGISTER, decToBcd(date.tm_mday))
+    wiringpi.wiringPiI2CWriteReg8(_gpio, MONTH_REGISTER, decToBcd(date.tm_mon))
+    wiringpi.wiringPiI2CWriteReg8(_gpio, YEAR_REGISTER, decToBcd(date.tm_year))
+    wiringpi.wiringPiI2CWrite(_gpio, I2CFlush)
 
-def dotBlink():
-    lastTimeBlink = wiringpi.millis()
+def dot_blink():
+    last_time_blink = wiringpi.millis()
 
-    if ((wiringpi.millis() - lastTimeBlink) >= 1000):
-        lastTimeBlink=wiringpi.millis()
-        dotState = !dotState
+    if ((wiringpi.millis() - last_time_blink) >= 1000):
+        lastTimeBlink = wiringpi.millis()
+        dot_state = !dot_state
   
-def addBlinkTo32Rep(var):
+def add_blink_to_rep(var):
     if dotState:
-        var &=~ LOWER_DOTS_MASK
-        var &=~ UPPER_DOTS_MASK
+        var &=~ _LOWER_DOTS_MASK
+        var &=~ _UPPER_DOTS_MASK
     else:
-       var |= LOWER_DOTS_MASK
-       var |= UPPER_DOTS_MASK
+       var |= _LOWER_DOTS_MASK
+       var |= _UPPER_DOTS_MASK
   
     return var
 
-def NcsBlank(off):
-    if (off):
-        wiringpi.digitalWrite(_RED_LIGHT_PIN, _LOW)
-        wiringpi.digitalWrite(_GREEN_LIGHT_PIN, _LOW)
-        wiringpi.digitalWrite(_BLUE_LIGHT_PIN, _LOW)
-        wiringpi.digitalWrite(_LE_PIN, LOW)
-        update_Backlight([0, 0, 0])
-    else:   
-        wiringpi.digitalWrite(_RED_LIGHT_PIN, _HIGH)
-        wiringpi.digitalWrite(_GREEN_LIGHT_PIN, _HIGH)
-        wiringpi.digitalWrite(_BLUE_LIGHT_PIN, _HIGH)
-        wiringpi.digitalWrite(_LE_PIN, _HIGH)
-  
 # flash with date
 def flash_date(seconds):
     n = 0
@@ -335,10 +316,10 @@ def flash_time(seconds):
     n = 0
     
     while n < seconds:
-        NcsBlank(true)
+        ncs_blank(true)
         wiringpi.delay(500)
-        NcsBlank(false)
-        DisplayTime()
+        ncs_blank(false)
+        display_time()
         wiringpi.delay(500)
         n++
         
@@ -350,22 +331,22 @@ def display_string(str):
     if cfg.dotState
       dot_blink()
 
-    uint32_t var32 = get32Rep(const_cast<char*>(cstr), LEFT_REPR_START)
-    var32 = addBlinkTo32Rep(var32)
+    rep_bits = get_rep(const_cast<char*>(cstr), LEFT_REPR_START)
+    rep_bits = add_blink_to_rep(rep_bits)
 
-    uint8_t display[8]
-  
-    fillBuffer(var32, display, _LEFT_BUFFER_START)
+    display = None
 
-    var32 = get32Rep(const_cast<char*>(cstr), RIGHT_REPR_START)
-    var32 = addBlinkTo32Rep(var32)
+    fill_buffer(rep_bits, display, _LEFT_BUFFER_START)
 
-    fillBuffer(var32, display, _RIGHT_BUFFER_START)
+    rep_bits = get_rep(const_cast<char*>(cstr), RIGHT_REPR_START)
+    rep_bits = add_blink_to_rep(rep_bits)
 
-    wiringpi.digitalWrite(LE_PIN, LOW)
+    fill_buffer(rep_bits, display, _RIGHT_BUFFER_START)
+
+    wiringpi.digitalWrite(_LE_PIN, _LOW)
 
     if _ncsHV5222:
-        uint64_t reverse = reverseBit(*(uint64_t*)display)
+        reverse = reverse_bits(*(uint64_t*)display)
 
         display[4] = reverse
         display[5] = reverse >> 8
@@ -377,7 +358,7 @@ def display_string(str):
         display[3] = reverse >> 56
   
     wiringpi.wiringPiSPIDataRW(0, display, 8)
-    wiringpi.digitalWrite(_LE_PIN, HIGH)
+    wiringpi.digitalWrite(_LE_PIN, _HIGH)
 
 def display_date():
   char displayCString[8]
@@ -418,27 +399,10 @@ def display_time():
 
   Display(displayCString)
 
-def blank():
-    wiringpi.digitalWrite(RED_LIGHT_PIN, LOW)
-    wiringpi.digitalWrite(GREEN_LIGHT_PIN, LOW)
-    wiringpi.digitalWrite(BLUE_LIGHT_PIN, LOW)
-    wiringpi.digitalWrite(LE_PIN, LOW)
-    update_backlight([0, 0, 0])
-  
-def unblank():
-    wiringpi.digitalWrite(RED_LIGHT_PIN, HIGH)
-    wiringpi.digitalWrite(GREEN_LIGHT_PIN, HIGH)
-    wiringpi.digitalWrite(BLUE_LIGHT_PIN, HIGH)
-    wiringpi.digitalWrite(LE_PIN, HIGH)
-
 def version():
     return '0.0.1'
 
 def gra_afch():
-    with open('./gra-afch.conf', 'r') as file:
-        _conf_dict = json.load(file)
-        # print(json.dumps(conf_dict))
-                      
     wiringpi.wiringPiSetup()
 
     # wiringpi.softToneCreate(BUZZER_PIN)
@@ -454,7 +418,7 @@ def gra_afch():
     buttons()
   
     # Open the NCS31X device
-    _gpioFd = wiringpi.wiringPiI2CSetup(I2CAdress)
+    _gpio = wiringpi.wiringPiI2CSetup(I2CAdress)
     if wiringpi.wiringPiSPISetupMode(0, 2000000, 2):
         exit(254)
 

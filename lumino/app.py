@@ -1,8 +1,23 @@
+##########
+##
+##  SPDX-License-Identifier: MIT
+##
+##  Copyright (c) 2017-2022 James M. Putnam <putnamjm.design@gmail.com>
+##
+##########
+
+##########
+##
+## lumino app
+##
+###########
+
 import os
 import socket
-import lumino
-# import gra_afch
 import time
+
+import lumino
+import gra_afch
 
 from datetime import date, datetime
 from flask import Flask, render_template
@@ -14,7 +29,8 @@ app.config.from_mapping(
     # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
 )
 
-_conf_dict = None
+_gra_afch_conf = None
+_lumino_conf = None
 
 socketio = SocketIO(app)
 
@@ -32,14 +48,19 @@ def send_message(data):
 
 @app.route('/')
 def init():
-    _conf_dict = lumino.lumino()
+    global _lumino_conf
+    global _gra_afch_conf
+
+    _lumino_conf = lumino.lumino()
+    _gra_afch_conf = gra_afch.gra_afch()
+
     return render_template('index.html',
                            host=socket.gethostname(),
-                           version=lumino.version(),
+                           version=lumino.VERSION,
                            serial='0001',
-                           conf=_conf_dict,                         
+                           lumino_conf=_lumino_conf,
+                           gra_afch_conf=_gra_afch_conf,
                            skew=0.0,
-                           wap=_conf_dict['wap'],
                            date=datetime.now().strftime('%B %d, %Y %H:%M:%S ')
                            + time.localtime().tm_zone,
                            )

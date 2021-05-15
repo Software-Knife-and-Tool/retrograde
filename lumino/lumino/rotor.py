@@ -14,7 +14,7 @@
 
 # rotor language:
 #
-#      name: [...]       [str] rotor name
+#      name: str         rotor name
 #
 #      blank [...]       [on|off] turn on/off tubes
 #      date [...]        [fmt-str] push formatted date to tubes 
@@ -23,14 +23,15 @@
 #      tube [...]        [n, on|off, digit]
 #      display [...]     [digits] digit string on tubes
 #
-#      exit []           stop rotoring/pop rotor stack
-
-  json:
-    "cmd": [ ... ],
-    ...
+#      exit              stop rotoring/pop rotor stack
+#
+#  json:
+#    "rotor" : {
+#                "name" : "...",
+#                "cmd": [ ... ],
+#              }
       
-
-_rotors = []
+_rotor_defs = []
 
 def _name(str):
     return
@@ -58,6 +59,8 @@ def _exit():
 
 # takes a rotor def dict
 # adds to rotor namespace
-def rotor(def):
-    global _rotors
+def rotor(def_dict):
+    global _rotor_defs
+
+    _rotor_defs.append(def_dict)
     return

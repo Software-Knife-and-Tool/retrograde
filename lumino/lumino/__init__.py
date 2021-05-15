@@ -1,13 +1,24 @@
+##########
+##
+##  SPDX-License-Identifier: MIT
+##
+##  Copyright (c) 2017-2022 James M. Putnam <putnamjm.design@gmail.com>
+##
+##########
+
+##########
+##
+## lumino initialization
+##
+###########
+
 import json
 
 VERSION = '0.0.1'
 
-def config(dct):
-    return
-
 def lumino():
     with open('./lumino/lumino.conf', 'r') as file:
-        conf_dict = json.load(file)
-        print(json.dumps(_conf_dict))
-        config(conf_dict)
-    return conf_dict
+        _conf_dict = json.load(file)
+        # print(json.dumps(_conf_dict))
+        
+    return _conf_dict

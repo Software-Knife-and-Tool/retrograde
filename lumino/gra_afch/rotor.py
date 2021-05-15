@@ -24,6 +24,8 @@ _RIGHT_BUFFER_START = 4
 
 _tube_map = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
 
+_rotor = None
+
 def scale_rgb(nval):
     return int(nval / 2.55)
 
@@ -181,3 +183,56 @@ def buttons():
 #                      pin = DOWN_BUTTON_PIN
 #                      mutex.unlock()
 #                    )
+
+# rotor language:
+#
+#      name: str         rotor name
+#
+#      blank [...]       [on|off] turn on/off tubes
+#      date [...]        [fmt-str] push formatted date to tubes 
+#      time [...]        [fmt-str] push formatted time to tubes
+#      delay [...]       [n] delay for n millisec
+#      tube [...]        [n, on|off, digit]
+#      display [...]     [digits] digit string on tubes
+#
+#      exit              stop rotoring/pop rotor stack
+#
+#  json:
+#    "rotors" : {
+#        "name" : {
+#                   "cmd": [ ... ],
+#                 },
+#    },
+#         
+      
+# find the rotor definition
+def start_rotor(name, conf_dict):
+    if 'rotors' in conf_dict:
+        rotors = cmd_dict['rotors']
+        if name in rotors:
+            _rotor = rotors[name]
+            return _rotor
+    return None
+
+def stop_rotor():
+    if _rotor is None:
+        return
+
+    
+    if type(cmd) is unicode:
+            utf8 = cmd.encode('utf-8')
+            if utf8 == 'time':
+                return
+            if utf8 == 'date':
+                return
+            if utf8 == 'blank':
+                return
+            if utf8 == 'unblank':
+                return
+            if utf8 == 'return':
+                return
+            return
+        
+
+    
+    return

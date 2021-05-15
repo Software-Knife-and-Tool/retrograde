@@ -15,7 +15,7 @@
 import wiringpi
 import ncs31x
 
-from time import time, localtime
+from time import time, localtime, strftime
 
 _LEFT_REPR_START = 5
 _LEFT_BUFFER_START = 0
@@ -64,46 +64,44 @@ def display_string(digits):
         return bits
 
     def add_blink_to_rep(bits):
-        if dotState:
-            bits &=~ _LOWER_DOTS_MASK
-            bits &=~ _UPPER_DOTS_MASK
-        else:
-            bits |= _LOWER_DOTS_MASK
-            bits |= _UPPER_DOTS_MASK
+#        if dotState:
+#            bits &=~ _LOWER_DOTS_MASK
+#            bits &=~ _UPPER_DOTS_MASK
+#        else:
+#            bits |= _LOWER_DOTS_MASK
+#            bits |= _UPPER_DOTS_MASK
   
         return bits
 
     def fill_buffer(nval, buffer, start):
-        buffer[start] = nval >> 24
-        buffer[start + 1] = nval >> 16
-        buffer[start + 2] = nval >> 8
-        buffer[start + 3] = nval
+        buffer[start] = (nval >> 24 & 0xff)
+        buffer[start + 1] = (nval >> 16) & 0xff
+        buffer[start + 2] = (nval >> 8) & 0xff
+        buffer[start + 3] = nval & 0xff
 
         return buffer;
 
-    wiringpi.pinMode(_LE_PIN, _OUTPUT)
-    if cfg.dotState
-      dot_blink()
+#    if cfg.dotState
+#      dot_blink()
 
-    rep_bits = get_rep(str, LEFT_REPR_START)
-    rep_bits = add_blink_to_rep(rep_bits)
+    left_bits = get_rep(digits, _LEFT_REPR_START)
+    left_bits = add_blink_to_rep(left_bits)
 
     buffer = [x for x in range(8)]
+    fill_buffer(left_bits, buffer, _LEFT_BUFFER_START)
 
-    fill_buffer(rep_bits, buffer, _LEFT_BUFFER_START)
-
-    rep_bits = get_rep(digits, RIGHT_REPR_START)
-    rep_bits = add_blink_to_rep(rep_bits)
-
-    fill_buffer(rep_bits, buffer, _RIGHT_BUFFER_START)
+    right_bits = get_rep(digits, _RIGHT_REPR_START)
+    right_bits = add_blink_to_rep(right_bits)
+    
+    fill_buffer(right_bits, buffer, _RIGHT_BUFFER_START)
 
     ncs31x.display(buffer)
 
 def display_date():
-    display_string(time.strftime('%m%d%y', time.localtime()))
+    display_string(strftime('%m%d%y', localtime()))
 
 def display_time():
-    display_string(rtc.strftime('%H%M%S', ncs31x.get_rtc_date())
+    display_string(strftime('%H%M%S', ncs31x.sync_time()))
 
 def update_backlight(color):
     default = [0xff, 0x40, 0x0]
@@ -120,7 +118,7 @@ def dot_blink():
 
     if ((wiringpi.millis() - last_time_blink) >= 1000):
         lastTimeBlink = wiringpi.millis()
-        dot_state = !dot_state
+        dot_state = not(dot_state)
   
 # flash with date
 def flash_date(seconds):
@@ -132,10 +130,10 @@ def flash_date(seconds):
         ncs31x.unblank()
         display_date()
         wiringpi.delay(500)
-        n++
+        n += 1
         
-    if cfg.backState:
-        update_backlight(cfg.backColor)
+#    if cfg.backState:
+#        update_backlight(cfg.backColor)
 
 # flash with time
 def flash_time(seconds):
@@ -147,10 +145,10 @@ def flash_time(seconds):
         ncs31x.unblank()
         display_time()
         wiringpi.delay(500)
-        n++
+        n += 1
         
-    if cfg.backState
-        initBacklight(cfg.backColor)
+#    if cfg.backState
+#        initBacklight(cfg.backColor)
 
 def buttons():
     # auto pin = _MODE_BUTTON_PIN

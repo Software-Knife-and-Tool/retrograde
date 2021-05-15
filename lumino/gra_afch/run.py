@@ -1,3 +1,4 @@
+
 ##########
 ##
 ##  SPDX-License-Identifier: MIT
@@ -8,17 +9,26 @@
 
 ##########
 ##
-## gra-afch NCS31X driver
+## gra-afch controller
 ##
 ###########
 
+import time
+import json
 import ncs31x
+import rotor
 
-gpio = ncs31x.ncs31x()
+VERSION = '0.0.1'
 
-version = '0.0.1'
-
-conf_dict = None
-with open('./gra_afch/gra-afch.conf', 'r') as file:
+with open('./gra-afch.conf', 'r') as file:
     conf_dict = json.load(file)
-    print(json.dumps(conf_dict))
+    ncs31x.ncs31x(conf_dict)
+    print(VERSION)
+    print(json.dumps(conf_dict))    
+
+rotor.display_date()
+time.sleep(1)
+ncs31x.blank()
+while True:
+    rotor.display_time()
+    time.sleep(1)

@@ -25,7 +25,7 @@
         <br />
         <div>
           <h2 style="display:inline" align=left>host: </h2>
-          <div style="display:inline" id="host">{{ host }}</div>
+          <div style="display:inline" id="host">{{ lumino_conf['hostname'] }}</div>
         </div>
         <div>
           <h2 style="display:inline" align=left>version: </h2>
@@ -37,7 +37,7 @@
         </div>
         <div>
           <h2 style="display:inline" align=left>WAP: </h2>
-          <div style="display:inline">{{ wap }}</div>
+          <div style="display:inline">{{ lumino_conf['wap'] }}</div>
         </div>
         <div>
           <h2 style="display:inline" align=left>clock skew: </h2>
@@ -45,25 +45,8 @@
         </div>
         <div>
           <h2 style="display:inline" align=left>configuration: </h2>
-          <div style="display:inline">{{ conf }}</div>
+          <div style="display:inline">{{ lumino_conf }}</div>
         </div>
-      </div>
-      <div class="p-4 m-4 bg-green-300 text-green-900 h-auto">
-        <h1>Notifications<h1>
-        <br />
-        <div>
-          <h2 style="display:inline" align=left>alarms: </h2>
-          <div style="display:inline">no alarms set</div>
-        </div>
-        <div>
-          <h2 style="display:inline" align=left>timers: </h2>
-          <div style="display:inline">no timers set</div>
-        </div>
-      </div>
-      <div class="p-4 m-4 bg-green-300 text-green-900 h-auto">
-        <h1>Integrations<h1>
-        <br />
-        <div style="display:inline">no integrations set</div>
       </div>
       <div class="p-4 m-4 bg-green-300 text-green-900 h-auto">
         <div>
@@ -77,7 +60,7 @@
         </div>
         <div>
           <h2 style="display:inline" align=left>configuration: </h2>
-          <div style="display:inline">{{ _conf_dict }}</div>
+          <div style="display:inline">{{ gra_afch_conf }}</div>
         </div>
       </div>
     </div>

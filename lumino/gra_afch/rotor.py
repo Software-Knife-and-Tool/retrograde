@@ -17,18 +17,15 @@ import ncs31x
 
 from time import time, localtime, strftime
 
-_LEFT_REPR_START = 5
-_LEFT_BUFFER_START = 0
-_RIGHT_REPR_START = 2
-_RIGHT_BUFFER_START = 4
-
 _tube_map = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
 
 _rotor = None
 
+# make local
 def scale_rgb(nval):
     return int(nval / 2.55)
 
+# eliminate
 def string_to_color(str):
     def ctoi(nib):
         nval = 0
@@ -59,7 +56,7 @@ def update_backlight(color):
     ncs31x.update_backlight([scale_rgb(color[0]),
                              scale_rgb(color[1]),
                              scale_rgb(color[2])])
-
+    
 def dot_blink():
     last_time_blink = wiringpi.millis()
 
@@ -78,12 +75,12 @@ def display_string(digits):
         return bits
 
     def add_blink_to_rep(bits):
-#        if dotState:
-#            bits &= ~_LOWER_DOTS_MASK
-#            bits &= ~_UPPER_DOTS_MASK
-#        else:
-#            bits |= _LOWER_DOTS_MASK
-#            bits |= _UPPER_DOTS_MASK
+        if ncs31x.config['dots']:
+            bits &= ~ncs31x._LOWER_DOTS_MASK
+            bits &= ~ncs31x._UPPER_DOTS_MASK
+        else:
+            bits |= ncs31x._LOWER_DOTS_MASK
+            bits |= ncs31x._UPPER_DOTS_MASK
   
         return bits
 
@@ -95,19 +92,19 @@ def display_string(digits):
 
         return buffer;
 
-#    if cfg.dotState
-#      dot_blink()
+    if ncs31x.config['dots']:
+        dot_blink()
 
-    left_bits = get_rep(digits, _LEFT_REPR_START)
+    left_bits = get_rep(digits, ncs31x._LEFT_REPR_START)
     left_bits = add_blink_to_rep(left_bits)
 
     buffer = [x for x in range(8)]
-    fill_buffer(left_bits, buffer, _LEFT_BUFFER_START)
+    fill_buffer(left_bits, buffer, ncs31x._LEFT_BUFFER_START)
 
-    right_bits = get_rep(digits, _RIGHT_REPR_START)
+    right_bits = get_rep(digits, ncs31x._RIGHT_REPR_START)
     right_bits = add_blink_to_rep(right_bits)
     
-    fill_buffer(right_bits, buffer, _RIGHT_BUFFER_START)
+    fill_buffer(right_bits, buffer, ncs31x._RIGHT_BUFFER_START)
 
     ncs31x.display(buffer)
 

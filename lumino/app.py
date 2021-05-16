@@ -60,7 +60,7 @@ def render():
 
 # if __name__ == '__main__':
 _lumino_conf = lumino.lumino()
-_gra_afch_conf = gra_afch.gra_afch(lumino.default_rotor())
+_gra_afch_conf = gra_afch.gra_afch()
 
 socketio.run(app, host='0.0.0.0')
 #    socketio.run(app, host='0.0.0.0', debug=True)

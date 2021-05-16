@@ -18,14 +18,6 @@ VERSION = '0.0.1'
 
 _conf_dict = None
 
-def default_rotor():
-    if "rotors" in _conf_dict:
-        rotors = _conf_dict['rotors']
-        if "default" in rotors:
-            return rotors['default']
-
-    return None
-
 def lumino():
     global _conf_dict
         

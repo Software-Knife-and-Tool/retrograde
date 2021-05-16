@@ -55,6 +55,18 @@ def string_to_color(str):
 
     return [r, g, b];
 
+def update_backlight(color):
+    ncs31x.update_backlight([scale_rgb(color[0]),
+                             scale_rgb(color[1]),
+                             scale_rgb(color[2])])
+
+def dot_blink():
+    last_time_blink = wiringpi.millis()
+
+    if ((wiringpi.millis() - last_time_blink) >= 1000):
+        lastTimeBlink = wiringpi.millis()
+        dot_state = not(dot_state)
+  
 def display_string(digits):
     def get_rep(str, start):
         bits = 0
@@ -105,53 +117,6 @@ def display_date():
 def display_time():
     display_string(strftime('%H%M%S', ncs31x.sync_time()))
     
-def update_backlight(color):
-    default = [0xff, 0x40, 0x0]
-
-    if color is None:
-        color = default
-                   
-    ncs31x.set_backlight([scale_rgb(color[0]),
-                          scale_rgb(color[1]),
-                          scale_rgb(color[2])])
-
-def dot_blink():
-    last_time_blink = wiringpi.millis()
-
-    if ((wiringpi.millis() - last_time_blink) >= 1000):
-        lastTimeBlink = wiringpi.millis()
-        dot_state = not(dot_state)
-  
-# flash with date
-def flash_date(seconds):
-    n = 0
-    
-    while n < seconds:
-        ncs31x.blank()
-        wiringpi.delay(500)
-        ncs31x.unblank()
-        display_date()
-        wiringpi.delay(500)
-        n += 1
-        
-#    if cfg.backState:
-#        update_backlight(cfg.backColor)
-
-# flash with time
-def flash_time(seconds):
-    n = 0
-    
-    while n < seconds:
-        ncs31x.blank()
-        wiringpi.delay(500)
-        ncs31x.unblank()
-        display_time()
-        wiringpi.delay(500)
-        n += 1
-        
-#    if cfg.backState
-#        initBacklight(cfg.backColor)
-
 def buttons():
     # auto pin = _MODE_BUTTON_PIN
     init_pin(_UP_BUTTON_PIN)
@@ -197,13 +162,14 @@ def buttons():
 #        delay: int         [n] delay for n millisecs
 #        tube: {...}        [n, on|off, digit]
 #        display: str       [digits] digit string on tubes
+#        back: [...]        [r, g, b] backlight color
 #        rotor: [...]       anonymous rotor
 #        exit:              stop rotoring/pop rotor stack
 #
 #  json:
 #    "rotors" : {
 #        "name" : {
-#                   "op": [ ... ],
+#                   "op": ...,
 #                 },
 #    },
 #
@@ -219,6 +185,9 @@ def rotor_exec(rotor):
                 threading.current_thread.exit()
             if 'exit' in step:
                 return
+            if 'back' in step:
+                update_backlight(step['back'])
+                continue
             if 'delay' in step:
                 wiringpi.delay(int(step['delay']))
                 continue

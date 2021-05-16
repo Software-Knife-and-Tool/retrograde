@@ -16,11 +16,20 @@ import json
 
 VERSION = '0.0.1'
 
+_conf_dict = None
+
+def default_rotor():
+    if "rotors" in _conf_dict:
+        rotors = _conf_dict['rotors']
+        if "default" in rotors:
+            return rotors['default']
+
+    return None
+
 def lumino():
+    global _conf_dict
+        
     with open('./lumino/lumino.conf', 'r') as file:
         _conf_dict = json.load(file)
-        # print(json.dumps(_conf_dict))
         
     return _conf_dict
-
-lumino()

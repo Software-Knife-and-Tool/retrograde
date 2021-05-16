@@ -68,8 +68,8 @@ def blank():
 def unblank():
     wiringpi.digitalWrite(_RED_LIGHT_PIN, wiringpi.HIGH)
     wiringpi.digitalWrite(_GREEN_LIGHT_PIN, wiringpi.HIGH)
-    wiringpi.digitalWrite(_BLUE_LIGHT_PIN, HIGH)
-    wiringpi.digitalWrite(_LE_PIN, HIGH)
+    wiringpi.digitalWrite(_BLUE_LIGHT_PIN, wiringpi.HIGH)
+    wiringpi.digitalWrite(_LE_PIN, wiringpi.HIGH)
 
 #
 # events

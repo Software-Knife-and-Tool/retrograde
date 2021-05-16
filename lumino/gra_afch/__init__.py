@@ -17,30 +17,44 @@ import json
 import sys
 import threading
 
+# this cleverness due to having to sudo
 sys.path.append(r'/home/lumino/lumino/lumino/gra_afch')
-import ncs31x
-import rotor
+from ncs31x import blank, ncs31x
+from rotor import rotor_exec, display_date, display_time
 
 VERSION = '0.0.1'
 
 conf_dict = None
+_rotor = None
 
-def rotor_thread():
-    rotor.display_date()
-    time.sleep(1)
-    ncs31x.blank()
-    while True:
-        rotor.display_time()
+def rotor(rotor_def):
+    global _rotor
+
+    if _rotor:
+        rotor._exit = True
+        _rotor.join()
+    _rotor = threading.Thread(target=rotor_exec, args=(rotor_def,))
+
+def gra_afch(rotor_def):
+    global _rotor
+
+    def def_thread():
+        display_date()
         time.sleep(1)
+        blank()
+        while True:
+            display_time()
+            time.sleep(1)
 
-def gra_afch():
     with open('./gra_afch/gra-afch.conf', 'r') as file:
         conf_dict = json.load(file)
-        ncs31x.ncs31x(conf_dict)
-        print(VERSION)
-        print(json.dumps(conf_dict))    
+        ncs31x(conf_dict)
 
-        _rotor = threading.Thread(target=rotor_thread, args=())
-        _rotor.start()
+    # debugging --
+    if rotor_def is None:
+        _rotor = threading.Thread(target=def_thread)
+    else:
+        rotor(rotor_def)
 
-gra_afch()
+    _rotor.start()
+    return conf_dict

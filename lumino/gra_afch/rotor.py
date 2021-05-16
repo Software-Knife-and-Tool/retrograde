@@ -67,8 +67,8 @@ def display_string(digits):
 
     def add_blink_to_rep(bits):
 #        if dotState:
-#            bits &=~ _LOWER_DOTS_MASK
-#            bits &=~ _UPPER_DOTS_MASK
+#            bits &= ~_LOWER_DOTS_MASK
+#            bits &= ~_UPPER_DOTS_MASK
 #        else:
 #            bits |= _LOWER_DOTS_MASK
 #            bits |= _UPPER_DOTS_MASK
@@ -104,7 +104,7 @@ def display_date():
 
 def display_time():
     display_string(strftime('%H%M%S', ncs31x.sync_time()))
-
+    
 def update_backlight(color):
     default = [0xff, 0x40, 0x0]
 
@@ -184,19 +184,21 @@ def buttons():
 #                      mutex.unlock()
 #                    )
 
-# rotor language:
+#####################
+#
+#  rotor definition:
 #
 #    name: str         rotor name
 #
-#    ops:
-#      blank: [...]       [on|off] turn on/off tubes
-#      date: [...]        [fmt-str] push formatted date to tubes 
-#      time: [...]        [fmt-str] push formatted time to tubes
-#      delay: [...]       [n] delay for n millisec
-#      tube: [...]        [n, on|off, digit]
-#      display: [...]     [digits] digit string on tubes
-#      rotor: [...]       anonymous rotor
-#      exit:              stop rotoring/pop rotor stack
+#      ops:
+#        blank: bool        [on|off] turn on/off tubes
+#        date: fmt-str      [fmt-str] push formatted date to tubes 
+#        time: fmt-str      [fmt-str] push formatted time to tubes
+#        delay: int         [n] delay for n millisecs
+#        tube: {...}        [n, on|off, digit]
+#        display: str       [digits] digit string on tubes
+#        rotor: [...]       anonymous rotor
+#        exit:              stop rotoring/pop rotor stack
 #
 #  json:
 #    "rotors" : {
@@ -207,32 +209,37 @@ def buttons():
 #
 
 _exit = None
-def rotor_thread(rotor):
+def rotor_exec(rotor):
+    global _exit
+
     while True:
         for step in rotor:
             if _exit:
                 _exit = False
+                threading.current_thread.exit()
+            if 'exit' in step:
                 return
             if 'delay' in step:
-                wiringpi.delay(step['delay'])
-                break
+                wiringpi.delay(int(step['delay']))
+                continue
             if 'blank' in step:
-                ncs31x.blank(step['blank'])
-                break
+                if step['blank']:
+                    ncs31x.blank()
+                else:
+                    ncs31x.unblank()
+                continue
             if 'date' in step:
-                ncs31x.display_date_fmt(step['date'])
-                break
+                display_string(strftime(step['date'], localtime()))
+                continue
             if 'time' in step:
-                ncs31x.display_date_fmt(step['time'])
-                break
+                display_string(strftime(step['time'], ncs31x.sync_time()))
+                continue
             if 'tube' in step:
                 ncs31x.tube(step['tube'])
-                break
+                continue
             if 'display' in step:
-                ncs31x.display(step['tube'])
-                break
-            if 'rotor' in rotor:
-                rotor_thread(step['rotor'])
-                break
-            if 'exit' in step:
-                return            
+                display_string(step['display'])
+                continue
+            if 'rotor' in step:
+                rotor_exec(step['rotor'])
+                continue

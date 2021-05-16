@@ -39,37 +39,32 @@ _DAY_REGISTER = 0x4
 _MONTH_REGISTER = 0x5
 _YEAR_REGISTER = 0x6
 
+_MAX_POWER = 100
 _RED_LIGHT_PIN = 28
 _GREEN_LIGHT_PIN = 27
 _BLUE_LIGHT_PIN = 29
-_MAX_POWER = 100
 
 _UPPER_DOTS_MASK = 0x80000000
 _LOWER_DOTS_MASK = 0x40000000
 
-# think: glrbls find a way to do without
 _ncsHV5222 = None
 _gpio = None
 _config = None
 
-def _bcd_to_dec(val):
-    return ((val >> 4) * 10) + (val & 0xf)
-
-def _dec_to_bcd(val):
-    return (int(val / 10) * 16) + (val % 10)
+#
+# display controls
+#
 
 def blank():
-    wiringpi.digitalWrite(_RED_LIGHT_PIN, wiringpi.LOW)
-    wiringpi.digitalWrite(_GREEN_LIGHT_PIN, wiringpi.LOW)
-    wiringpi.digitalWrite(_BLUE_LIGHT_PIN, wiringpi.LOW)
     wiringpi.digitalWrite(_LE_PIN, wiringpi.LOW)
-    update_backlight([0, 0, 0])
   
 def unblank():
-    wiringpi.digitalWrite(_RED_LIGHT_PIN, wiringpi.HIGH)
-    wiringpi.digitalWrite(_GREEN_LIGHT_PIN, wiringpi.HIGH)
-    wiringpi.digitalWrite(_BLUE_LIGHT_PIN, wiringpi.HIGH)
     wiringpi.digitalWrite(_LE_PIN, wiringpi.HIGH)
+
+def update_backlight(color):
+    wiringpi.softPwmWrite(_RED_LIGHT_PIN, color[0])
+    wiringpi.softPwmWrite(_GREEN_LIGHT_PIN, color[1])
+    wiringpi.softPwmWrite(_BLUE_LIGHT_PIN, color[2])
 
 #
 # events
@@ -100,6 +95,9 @@ func_down.debounce = 0
 
 # think: consolidate
 def write_rtc_time(tm):
+    def _dec_to_bcd(val):
+        return (int(val / 10) * 16) + (val % 10)
+
     def update_rtc_hour(tm):
         wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
         wiringpi.wiringPiI2CWriteReg8(_gpio, _HOUR_REGISTER, _dec_to_bcd(tm.tm_hour))
@@ -128,7 +126,11 @@ def write_rtc_time(tm):
 
 # check the clock skew, if it's off by more than a little bit,
 # sync to the host's time
+
 def sync_time():
+    def _bcd_to_dec(val):
+        return ((val >> 4) * 10) + (val & 0xf)
+
     use12hour = True
     def _12_hour():
         tm_hour = _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio, _HOUR_REGISTER))
@@ -189,11 +191,6 @@ def display(tubes):
     buf = bytes(display)
     wiringpi.wiringPiSPIDataRW(0, buf)
     wiringpi.digitalWrite(_LE_PIN, wiringpi.HIGH)
-
-def update_backlight(color):
-    wiringpi.softPwmWrite(_RED_LIGHT_PIN, color[0])
-    wiringpi.softPwmWrite(_GREEN_LIGHT_PIN, color[1])
-    wiringpi.softPwmWrite(_BLUE_LIGHT_PIN, color[2])
 
 def init_pin(pin):
     wiringpi.pinMode(pin, wiringpi.INPUT)

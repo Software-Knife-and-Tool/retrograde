@@ -20,6 +20,7 @@ from time import time, localtime, strftime
 _tube_map = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
 
 _rotor = None
+_dots = None
 
 # make local
 def scale_rgb(nval):
@@ -57,31 +58,22 @@ def update_backlight(color):
                              scale_rgb(color[1]),
                              scale_rgb(color[2])])
     
-def dot_blink():
-    last_time_blink = wiringpi.millis()
-
-    if ((wiringpi.millis() - last_time_blink) >= 1000):
-        lastTimeBlink = wiringpi.millis()
-        dot_state = not(dot_state)
-  
 def display_string(digits):
     def get_rep(str, start):
-        bits = 0
-
         bits = (_tube_map[int(str[start])]) << 20
         bits |= (_tube_map[int(str[start - 1])]) << 10
         bits |= (_tube_map[int(str[start - 2])])
   
         return bits
 
-    def add_blink_to_rep(bits):
-        if ncs31x.config['dots']:
-            bits &= ~ncs31x._LOWER_DOTS_MASK
-            bits &= ~ncs31x._UPPER_DOTS_MASK
-        else:
+    def add_dot_to_rep(bits):
+        if _dots:
             bits |= ncs31x._LOWER_DOTS_MASK
             bits |= ncs31x._UPPER_DOTS_MASK
-  
+        else:
+            bits &= ~ncs31x._LOWER_DOTS_MASK
+            bits &= ~ncs31x._UPPER_DOTS_MASK
+            
         return bits
 
     def fill_buffer(nval, buffer, start):
@@ -92,17 +84,14 @@ def display_string(digits):
 
         return buffer;
 
-    if ncs31x.config['dots']:
-        dot_blink()
-
     left_bits = get_rep(digits, ncs31x._LEFT_REPR_START)
-    left_bits = add_blink_to_rep(left_bits)
+    left_bits = add_dot_to_rep(left_bits)
 
     buffer = [x for x in range(8)]
     fill_buffer(left_bits, buffer, ncs31x._LEFT_BUFFER_START)
 
     right_bits = get_rep(digits, ncs31x._RIGHT_REPR_START)
-    right_bits = add_blink_to_rep(right_bits)
+    right_bits = add_dot_to_rep(right_bits)
     
     fill_buffer(right_bits, buffer, ncs31x._RIGHT_BUFFER_START)
 
@@ -174,7 +163,9 @@ def buttons():
 _exit = None
 def rotor_exec(rotor):
     global _exit
+    global _dots
 
+    _dots = ncs31x.config['dots']
     while True:
         for step in rotor:
             if _exit:
@@ -196,6 +187,9 @@ def rotor_exec(rotor):
                 continue
             if 'date' in step:
                 display_string(strftime(step['date'], localtime()))
+                continue
+            if 'dots' in step:
+                _dots = step['dots']
                 continue
             if 'time' in step:
                 display_string(strftime(step['time'], ncs31x.sync_time()))

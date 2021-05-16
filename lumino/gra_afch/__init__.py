@@ -14,8 +14,8 @@
 
 import time
 import json
-import threading
 import sys
+import threading
 
 sys.path.append(r'/home/lumino/lumino/lumino/gra_afch')
 import ncs31x
@@ -23,7 +23,7 @@ import rotor
 
 VERSION = '0.0.1'
 
-_conf_dict = None
+conf_dict = None
 
 def rotor_thread():
     rotor.display_date()
@@ -34,13 +34,13 @@ def rotor_thread():
         time.sleep(1)
 
 def gra_afch():
-    global _conf_dict
-    
     with open('./gra_afch/gra-afch.conf', 'r') as file:
-        _conf_dict = json.load(file)
-        ncs31x.ncs31x(_conf_dict)
+        conf_dict = json.load(file)
+        ncs31x.ncs31x(conf_dict)
+        print(VERSION)
+        print(json.dumps(conf_dict))    
 
         _rotor = threading.Thread(target=rotor_thread, args=())
         _rotor.start()
 
-        return _conf_dict
+gra_afch()

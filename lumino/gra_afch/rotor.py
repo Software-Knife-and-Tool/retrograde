@@ -186,53 +186,53 @@ def buttons():
 
 # rotor language:
 #
-#      name: str         rotor name
+#    name: str         rotor name
 #
-#      blank [...]       [on|off] turn on/off tubes
-#      date [...]        [fmt-str] push formatted date to tubes 
-#      time [...]        [fmt-str] push formatted time to tubes
-#      delay [...]       [n] delay for n millisec
-#      tube [...]        [n, on|off, digit]
-#      display [...]     [digits] digit string on tubes
-#
-#      exit              stop rotoring/pop rotor stack
+#    ops:
+#      blank: [...]       [on|off] turn on/off tubes
+#      date: [...]        [fmt-str] push formatted date to tubes 
+#      time: [...]        [fmt-str] push formatted time to tubes
+#      delay: [...]       [n] delay for n millisec
+#      tube: [...]        [n, on|off, digit]
+#      display: [...]     [digits] digit string on tubes
+#      rotor: [...]       anonymous rotor
+#      exit:              stop rotoring/pop rotor stack
 #
 #  json:
 #    "rotors" : {
 #        "name" : {
-#                   "cmd": [ ... ],
+#                   "op": [ ... ],
 #                 },
 #    },
-#         
-      
-# find the rotor definition
-def start_rotor(name, conf_dict):
-    if 'rotors' in conf_dict:
-        rotors = cmd_dict['rotors']
-        if name in rotors:
-            _rotor = rotors[name]
-            return _rotor
-    return None
+#
 
-def stop_rotor():
-    if _rotor is None:
-        return
-
-    
-    if type(cmd) is unicode:
-            utf8 = cmd.encode('utf-8')
-            if utf8 == 'time':
+_exit = None
+def rotor_thread(rotor):
+    while True:
+        for step in rotor:
+            if _exit:
+                _exit = False
                 return
-            if utf8 == 'date':
-                return
-            if utf8 == 'blank':
-                return
-            if utf8 == 'unblank':
-                return
-            if utf8 == 'return':
-                return
-            return
-        
-
-    
-    return
+            if 'delay' in step:
+                wiringpi.delay(step['delay'])
+                break
+            if 'blank' in step:
+                ncs31x.blank(step['blank'])
+                break
+            if 'date' in step:
+                ncs31x.display_date_fmt(step['date'])
+                break
+            if 'time' in step:
+                ncs31x.display_date_fmt(step['time'])
+                break
+            if 'tube' in step:
+                ncs31x.tube(step['tube'])
+                break
+            if 'display' in step:
+                ncs31x.display(step['tube'])
+                break
+            if 'rotor' in rotor:
+                rotor_thread(step['rotor'])
+                break
+            if 'exit' in step:
+                return            

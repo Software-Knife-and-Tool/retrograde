@@ -22,3 +22,5 @@ def lumino():
         # print(json.dumps(_conf_dict))
         
     return _conf_dict
+
+lumino()

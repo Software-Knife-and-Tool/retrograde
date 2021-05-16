@@ -47,9 +47,14 @@ _BLUE_LIGHT_PIN = 29
 _UPPER_DOTS_MASK = 0x80000000
 _LOWER_DOTS_MASK = 0x40000000
 
+_LEFT_REPR_START = 5
+_LEFT_BUFFER_START = 0
+_RIGHT_REPR_START = 2
+_RIGHT_BUFFER_START = 4
+
 _ncsHV5222 = None
 _gpio = None
-_config = None
+config = None
 
 #
 # display controls
@@ -131,10 +136,9 @@ def sync_time():
     def _bcd_to_dec(val):
         return ((val >> 4) * 10) + (val & 0xf)
 
-    use12hour = True
     def _12_hour():
         tm_hour = _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio, _HOUR_REGISTER))
-        if use12hour and tm_hour > 12:
+        if config['12hour'] and tm_hour > 12:
             tm_hour -= 12
 
         return tm_hour
@@ -200,6 +204,7 @@ def ncs31x(conf_dict):
     global _ncsHV5222    # death to globals
     global _gpio
     global config
+
     config = conf_dict
     
     wiringpi.wiringPiSetup()
@@ -211,8 +216,8 @@ def ncs31x(conf_dict):
     wiringpi.softPwmCreate(_GREEN_LIGHT_PIN, 0, _MAX_POWER)
     wiringpi.softPwmCreate(_BLUE_LIGHT_PIN, 0, _MAX_POWER)
 
-#    if conf_dict['backState']:
-#        update_backlight(conf_dict['backColor'])
+    if conf_dict['back_light']:
+        update_backlight(conf_dict['back_light'])
 
     # open the I2C bus to the NCS31X device
     _gpio = wiringpi.wiringPiI2CSetup(_I2CAddress)

@@ -142,15 +142,17 @@ def buttons():
 #    name: str         rotor name
 #
 #      ops:
+#        back: [...]        [r, g, b] backlight color
 #        blank: bool        [on|off] turn on/off tubes
 #        date: fmt-str      [fmt-str] push formatted date to tubes 
-#        time: fmt-str      [fmt-str] push formatted time to tubes
 #        delay: int         [n] delay for n millisecs
-#        tube: {...}        [n, on|off, digit]
 #        display: str       [digits] digit string on tubes
-#        back: [...]        [r, g, b] backlight color
+#        stop:              stop rotor/pop rotor stack
+#        repeat: { count: n, rotor: [...]
+#                           repeat rotor n times
 #        rotor: [...]       anonymous rotor
-#        exit:              stop rotoring/pop rotor stack
+#        time: fmt-str      [fmt-str] push formatted time to tubes
+#        tube: {...}        [n, on|off, digit]
 #
 #  json:
 #    "rotors" : {
@@ -171,7 +173,7 @@ def rotor_exec(rotor):
             if _exit:
                 _exit = False
                 threading.current_thread.exit()
-            if 'exit' in step:
+            if 'stop' in step:
                 return
             if 'back' in step:
                 update_backlight(step['back'])
@@ -199,6 +201,11 @@ def rotor_exec(rotor):
                 continue
             if 'display' in step:
                 display_string(step['display'])
+                continue
+            if 'repeat' in step:
+                _def = step['repeat']
+                for i in range(0, _def['count']):
+                    rotor_exec(_def['rotor'])
                 continue
             if 'rotor' in step:
                 rotor_exec(step['rotor'])

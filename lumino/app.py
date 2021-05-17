@@ -15,10 +15,11 @@
 
 import socket
 import time
+import json
 
 from datetime import datetime
 from flask import Flask, render_template
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, send, emit
 
 import lumino
 import gra_afch
@@ -29,20 +30,21 @@ app.config.from_mapping(
     # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
 )
 
-_gra_afch_conf = None
+_lumino_conf = lumino.lumino()
+_gra_afch_conf = gra_afch.gra_afch()
 
 socketio = SocketIO(app)
 
-@socketio.on('message')
-def handle_message(data):
-    print('server: received message: ' + data)
+@socketio.on('json')
+def recv_message(json):
+    print('server:receive json:')
+    print(json.loads(json))
 
-@socketio.on('message')
-def send_message(data):
-    print('server:send message: ' + data)
-    socketio.run(app)
-    send_message(datetime.now().strftime('%B %d, %Y %H:%M:%S ')
-                 + time.localtime().tm_zone)
+@socketio.on('json')
+def send_message(obj):
+    print('server:send json: ')
+    print(obj)
+    socketio.send('json', json.dumps(obj))
 
 @app.route('/')
 def render():
@@ -52,15 +54,12 @@ def render():
                            serial='0001',
                            lumino_conf=_lumino_conf,
                            gra_afch_conf=_gra_afch_conf,
-                           rotor=lumino.default_rotor(),
                            skew=0.0,
                            date=datetime.now().strftime('%B %d, %Y %H:%M:%S ')
                            + time.localtime().tm_zone,
                            )
 
-# if __name__ == '__main__':
-_lumino_conf = lumino.lumino()
-_gra_afch_conf = gra_afch.gra_afch()
-
 socketio.run(app, host='0.0.0.0')
-#    socketio.run(app, host='0.0.0.0', debug=True)
+# send_message({'date': datetime.now().strftime('%B %d, %Y %H:%M:%S ')
+#              + time.localtime().tm_zone})
+

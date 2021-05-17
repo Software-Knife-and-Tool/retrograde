@@ -147,7 +147,7 @@ def buttons():
 #        date: fmt-str      [fmt-str] push formatted date to tubes 
 #        delay: int         [n] delay for n millisecs
 #        display: str       [digits] digit string on tubes
-#        exit:              stop rotoring/pop rotor stack
+#        stop:              stop rotor/pop rotor stack
 #        repeat: { count: n, rotor: [...]
 #                           repeat rotor n times
 #        rotor: [...]       anonymous rotor
@@ -173,7 +173,7 @@ def rotor_exec(rotor):
             if _exit:
                 _exit = False
                 threading.current_thread.exit()
-            if 'exit' in step:
+            if 'stop' in step:
                 return
             if 'back' in step:
                 update_backlight(step['back'])

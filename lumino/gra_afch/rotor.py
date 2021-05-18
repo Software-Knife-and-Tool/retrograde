@@ -22,41 +22,50 @@ _tube_map = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
 _rotor = None
 _dots = None
 
-# make local
-def scale_rgb(nval):
-    return int(nval / 2.55)
+#
+# use this if we want to accept
+# hex rrggbb strings in json
+#
 
-# eliminate
-def string_to_color(str):
-    def ctoi(nib):
-        nval = 0
-
-        if nib >= '0' & nib <= '9':
-            nval = nib - '0'
-        elif nib >= 'a' & nib <= 'f':
-            nval = nib - 'a' + 10;
-        elif (nib >= 'A' & nib <= 'F'):
-            nval = nib - 'A' + 10
-        else:
-            nval = -1
-        return nval
-
-    def channel(msn, lsn):
-        m = ctoi(msn);
-        l = ctoi(lsn);
-
-        return (m < 0 | l < 0) if -1 else (m << 4) + l
-
-    r = channel(str[0], str[1])
-    g = channel(str[2], str[3])
-    b = channel(str[4], str[5])
-
-    return [r, g, b];
+# def string_to_color(str):
+#    def ctoi(nib):
+#        nval = 0
+#
+#        if nib >= '0' & nib <= '9':
+#            nval = nib - '0'
+#        elif nib >= 'a' & nib <= 'f':
+#            nval = nib - 'a' + 10;
+#        elif (nib >= 'A' & nib <= 'F'):
+#            nval = nib - 'A' + 10
+#        else:
+#            nval = -1
+#        return nval
+#
+#    def channel(msn, lsn):
+#        m = ctoi(msn);
+#        l = ctoi(lsn);
+#
+#        return (m < 0 | l < 0) if -1 else (m << 4) + l
+#
+#    r = channel(str[0], str[1])
+#    g = channel(str[2], str[3])
+#    b = channel(str[4], str[5])
+#
+#    return [r, g, b];
 
 def update_backlight(color):
-    ncs31x.update_backlight([scale_rgb(color[0]),
-                             scale_rgb(color[1]),
-                             scale_rgb(color[2])])
+    def _scale(nval):
+        return int(nval * (100 / 255))
+
+    ncs31x.update_backlight([_scale(color[0]),
+                             _scale(color[1]),
+                             _scale(color[2])])
+
+def display_date():
+    display_string(strftime('%m%d%y', localtime()))
+
+def display_time():
+    display_string(strftime('%H%M%S', ncs31x.sync_time()))
     
 def display_string(digits):
     def get_rep(str, start):
@@ -97,12 +106,6 @@ def display_string(digits):
 
     ncs31x.display(buffer)
 
-def display_date():
-    display_string(strftime('%m%d%y', localtime()))
-
-def display_time():
-    display_string(strftime('%H%M%S', ncs31x.sync_time()))
-    
 def buttons():
     # auto pin = _MODE_BUTTON_PIN
     init_pin(_UP_BUTTON_PIN)

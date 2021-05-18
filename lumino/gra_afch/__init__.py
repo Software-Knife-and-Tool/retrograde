@@ -41,8 +41,8 @@ def rotor(rotor_def):
     if _rotor:
         rotor._exit = True
         _rotor.join()
-        
-    _rotor = threading.Thread(target=rotor_exec, args=(rotor_def,))
+
+        _rotor = threading.Thread(target=rotor_exec, args=(rotor_def,))
 
 def gra_afch():
     global _rotor

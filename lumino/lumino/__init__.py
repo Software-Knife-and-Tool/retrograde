@@ -11,7 +11,7 @@
 ## lumino initialization
 ##
 ###########
-
+""" look at me! I'm a docstring """
 import json
 
 VERSION = '0.0.1'
@@ -20,8 +20,8 @@ _conf_dict = None
 
 def lumino():
     global _conf_dict
-        
+
     with open('./lumino/lumino.conf', 'r') as file:
         _conf_dict = json.load(file)
-        
+
     return _conf_dict

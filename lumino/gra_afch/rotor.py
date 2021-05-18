@@ -94,16 +94,16 @@ def display_string(digits):
 
         return buffer
 
-    left_bits = get_rep(digits, ncs31x._LEFT_REPR_START)
+    left_bits = get_rep(digits, ncs31x.LEFT_REPR_START)
     left_bits = add_dot_to_rep(left_bits)
 
     buffer = [x for x in range(8)]
-    fill_buffer(left_bits, buffer, ncs31x._LEFT_BUFFER_START)
+    fill_buffer(left_bits, buffer, ncs31x.LEFT_BUFFER_START)
 
-    right_bits = get_rep(digits, ncs31x._RIGHT_REPR_START)
+    right_bits = get_rep(digits, ncs31x.RIGHT_REPR_START)
     right_bits = add_dot_to_rep(right_bits)
 
-    fill_buffer(right_bits, buffer, ncs31x._RIGHT_BUFFER_START)
+    fill_buffer(right_bits, buffer, ncs31x.RIGHT_BUFFER_START)
 
     ncs31x.display(buffer)
 

@@ -219,7 +219,7 @@ def ncs31x(conf_dict):
     wiringpi.softPwmCreate(_GREEN_LIGHT_PIN, 0, _MAX_POWER)
     wiringpi.softPwmCreate(_BLUE_LIGHT_PIN, 0, _MAX_POWER)
 
-    if conf_dict['back_light']:
+    if conf_dict != None and conf_dict['back_light']:
         update_backlight(conf_dict['back_light'])
 
     # open the I2C bus to the NCS31X device

@@ -9,6 +9,15 @@ SRCS = \
 	gra_afch/ncs31x.py   \
 	gra_afch/__init__.py
 
+blank:
+	@sudo env "PATH=/home/lumino/lumino/venv/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/home/lumino/bin:/home/lumino/.local/bin:." python3 gra_afch/blank.py
+
+run:
+	@sudo env "PATH=/home/lumino/lumino/venv/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/home/lumino/bin:/home/lumino/.local/bin:." python3 app.py
+
+uwsgi:
+	@uwsgi --http :5000 --gevent 1000 --http-websockets --master --wsgi-file app.py --callable app
+
 lint:
 	@for i in $(SRCS); do	\
 	    pylint $$i;		\

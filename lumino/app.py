@@ -19,7 +19,7 @@ import json
 
 from datetime import datetime
 from flask import Flask, render_template
-from flask_socketio import SocketIO, send, emit
+from flask_socketio import SocketIO
 
 import lumino
 import gra_afch
@@ -36,9 +36,9 @@ _gra_afch_conf = gra_afch.gra_afch()
 socketio = SocketIO(app)
 
 @socketio.on('json')
-def recv_message(json):
+def recv_message(json_):
     print('server:receive json:')
-    print(json.loads(json))
+    print(json.loads(json_))
 
 @socketio.on('json')
 def send_message(obj):

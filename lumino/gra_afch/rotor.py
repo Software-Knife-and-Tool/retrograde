@@ -11,6 +11,7 @@
 ## NCS31X rotor
 ##
 ###########
+""" i'm a module docstring! """
 
 import wiringpi
 import ncs31x
@@ -66,23 +67,23 @@ def display_date():
 
 def display_time():
     display_string(strftime('%H%M%S', ncs31x.sync_time()))
-    
+
 def display_string(digits):
-    def get_rep(str, start):
-        bits = (_tube_map[int(str[start])]) << 20
-        bits |= (_tube_map[int(str[start - 1])]) << 10
-        bits |= (_tube_map[int(str[start - 2])])
-  
+    def get_rep(str_, start):
+        bits = (_tube_map[int(str_[start])]) << 20
+        bits |= (_tube_map[int(str_[start - 1])]) << 10
+        bits |= (_tube_map[int(str_[start - 2])])
+
         return bits
 
     def add_dot_to_rep(bits):
         if _dots:
-            bits |= ncs31x._LOWER_DOTS_MASK
-            bits |= ncs31x._UPPER_DOTS_MASK
+            bits |= ncs31x.LOWER_DOTS_MASK
+            bits |= ncs31x.UPPER_DOTS_MASK
         else:
-            bits &= ~ncs31x._LOWER_DOTS_MASK
-            bits &= ~ncs31x._UPPER_DOTS_MASK
-            
+            bits &= ~ncs31x.LOWER_DOTS_MASK
+            bits &= ~ncs31x.UPPER_DOTS_MASK
+
         return bits
 
     def fill_buffer(nval, buffer, start):
@@ -91,18 +92,18 @@ def display_string(digits):
         buffer[start + 2] = (nval >> 8) & 0xff
         buffer[start + 3] = nval & 0xff
 
-        return buffer;
+        return buffer
 
-    left_bits = get_rep(digits, ncs31x._LEFT_REPR_START)
+    left_bits = get_rep(digits, ncs31x.LEFT_REPR_START)
     left_bits = add_dot_to_rep(left_bits)
 
     buffer = [x for x in range(8)]
-    fill_buffer(left_bits, buffer, ncs31x._LEFT_BUFFER_START)
+    fill_buffer(left_bits, buffer, ncs31x.LEFT_BUFFER_START)
 
-    right_bits = get_rep(digits, ncs31x._RIGHT_REPR_START)
+    right_bits = get_rep(digits, ncs31x.RIGHT_REPR_START)
     right_bits = add_dot_to_rep(right_bits)
-    
-    fill_buffer(right_bits, buffer, ncs31x._RIGHT_BUFFER_START)
+
+    fill_buffer(right_bits, buffer, ncs31x.RIGHT_BUFFER_START)
 
     ncs31x.display(buffer)
 
@@ -114,7 +115,7 @@ def buttons():
 
 #    wiringpi.wiringPiISR(_MODE_BUTTON_PIN, _INT_EDGE_RISING,
 #                    static unsigned long debounce = 0
-# 
+#
 #                    if ((wiringpi.millis() - debounce) > DEBOUNCE_DELAY):
 #
 #
@@ -147,7 +148,7 @@ def buttons():
 #      ops:
 #        back: [...]        [r, g, b] backlight color
 #        blank: bool        [on|off] turn on/off tubes
-#        date: fmt-str      [fmt-str] push formatted date to tubes 
+#        date: fmt-str      [fmt-str] push formatted date to tubes
 #        delay: int         [n] delay for n millisecs
 #        display: str       [digits] digit string on tubes
 #        stop:              stop rotor/pop rotor stack
@@ -206,9 +207,9 @@ def rotor_exec(rotor):
                 display_string(step['display'])
                 continue
             if 'repeat' in step:
-                _def = step['repeat']
-                for i in range(0, _def['count']):
-                    rotor_exec(_def['rotor'])
+                def_ = step['repeat']
+                for _ in range(0, def_['count']):
+                    rotor_exec(def_['rotor'])
                 continue
             if 'rotor' in step:
                 rotor_exec(step['rotor'])

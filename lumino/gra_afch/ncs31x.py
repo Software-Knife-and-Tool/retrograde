@@ -44,13 +44,13 @@ _RED_LIGHT_PIN = 28
 _GREEN_LIGHT_PIN = 27
 _BLUE_LIGHT_PIN = 29
 
-_UPPER_DOTS_MASK = 0x80000000
-_LOWER_DOTS_MASK = 0x40000000
+UPPER_DOTS_MASK = 0x80000000
+LOWER_DOTS_MASK = 0x40000000
 
-_LEFT_REPR_START = 5
-_LEFT_BUFFER_START = 0
-_RIGHT_REPR_START = 2
-_RIGHT_BUFFER_START = 4
+LEFT_REPR_START = 5
+LEFT_BUFFER_START = 0
+RIGHT_REPR_START = 2
+RIGHT_BUFFER_START = 4
 
 _ncsHV5222 = None
 _gpio = None
@@ -219,7 +219,7 @@ def ncs31x(conf_dict):
     wiringpi.softPwmCreate(_GREEN_LIGHT_PIN, 0, _MAX_POWER)
     wiringpi.softPwmCreate(_BLUE_LIGHT_PIN, 0, _MAX_POWER)
 
-    if conf_dict['back_light']:
+    if conf_dict != None and conf_dict['back_light']:
         update_backlight(conf_dict['back_light'])
 
     # open the I2C bus to the NCS31X device

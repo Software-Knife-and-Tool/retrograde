@@ -70,35 +70,14 @@ def update_backlight(color):
     wiringpi.softPwmWrite(_RED_LIGHT_PIN, color[0])
     wiringpi.softPwmWrite(_GREEN_LIGHT_PIN, color[1])
     wiringpi.softPwmWrite(_BLUE_LIGHT_PIN, color[2])
-
-#
-# events
-#
-
-# think: this is ugly
-def func_mode():
-    if ((wiringpi.millis() - func_mode.debounce) > _DEBOUNCE_DELAY):
-        print('MODE button was pressed.')
-        func_mode.debounce = wiringpi.millis()
-func_mode.debounce = 0
-  
-def func_up():
-    if ((wiringpi.millis() - func_up.debounce) > _DEBOUNCE_DELAY):
-        print('UP button was pressed.')
-        func_up.debounce = wiringpi.millis()
-func_up.debounce = 0
-
-def func_down():
-    if ((wiringpi.millis() - func_down.debounce) > _DEBOUNCE_DELAY):
-        print('DOWN button was pressed.')
-        func_down.debounce = wiringpi.millis()
-func_down.debounce = 0
-
 #
 # RTC functions
 #
 
-# think: consolidate
+#
+# think: consolidate? does this even work?
+#
+
 def write_rtc_time(tm):
     def _dec_to_bcd(val):
         return (int(val / 10) * 16) + (val % 10)
@@ -158,6 +137,7 @@ def sync_time():
     return now
 
 # stuff the tubes
+
 def display(tubes):
     def rev_bits(nval):
         reversed = 0
@@ -199,6 +179,29 @@ def display(tubes):
 def init_pin(pin):
     wiringpi.pinMode(pin, wiringpi.INPUT)
     wiringpi.pullUpDnControl(pin, wiringpi.PUD_UP)
+
+#
+# events
+#
+
+# think: this is ugly
+def func_mode():
+    if ((wiringpi.millis() - func_mode.debounce) > _DEBOUNCE_DELAY):
+        print('MODE button was pressed.')
+        func_mode.debounce = wiringpi.millis()
+func_mode.debounce = 0
+  
+def func_up():
+    if ((wiringpi.millis() - func_up.debounce) > _DEBOUNCE_DELAY):
+        print('UP button was pressed.')
+        func_up.debounce = wiringpi.millis()
+func_up.debounce = 0
+
+def func_down():
+    if ((wiringpi.millis() - func_down.debounce) > _DEBOUNCE_DELAY):
+        print('DOWN button was pressed.')
+        func_down.debounce = wiringpi.millis()
+func_down.debounce = 0
 
 def ncs31x(conf_dict):
     global _ncsHV5222    # death to globals

@@ -136,7 +136,9 @@ def sync_time():
 
     return now
 
+#
 # stuff the tubes
+#
 
 def display(tubes):
     def rev_bits(nval):
@@ -148,10 +150,10 @@ def display(tubes):
   
         return reversed
     
-    def list_to_bits(lst):
+    def tube_to_bits(tubes):
         bits = 0
         for n in range(8):
-            bits |= lst[0]
+            bits |= tubes[n]
             bits <<= 8
 
         return bits
@@ -161,7 +163,7 @@ def display(tubes):
 
     display = tubes
     if _ncsHV5222:
-        reverse = rev_bits(lst_to_bits(display))
+        reverse = rev_bits(tube_to_bits(display))
 
         display[4] = reverse
         display[5] = reverse >> 8
@@ -219,7 +221,7 @@ def ncs31x(conf_dict):
     wiringpi.softPwmCreate(_GREEN_LIGHT_PIN, 0, _MAX_POWER)
     wiringpi.softPwmCreate(_BLUE_LIGHT_PIN, 0, _MAX_POWER)
 
-    if conf_dict != None and conf_dict['back_light']:
+    if conf_dict and conf_dict['back_light']:
         update_backlight(conf_dict['back_light'])
 
     # open the I2C bus to the NCS31X device

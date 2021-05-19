@@ -8,7 +8,7 @@
 
 ##########
 ##
-## NCS31X rotor
+## rotors
 ##
 ###########
 """ i'm a module docstring! """
@@ -19,6 +19,8 @@ import ncs31x
 from time import time, localtime, strftime
 
 _tube_map = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
+_tubes_stack = []
+_tubes_mask = [255 for _ in range(8)]
 
 _rotor = None
 _dots = None
@@ -61,13 +63,13 @@ def update_backlight(color):
     ncs31x.update_backlight([_scale(color[0]),
                              _scale(color[1]),
                              _scale(color[2])])
-
 def display_date():
     display_string(strftime('%m%d%y', localtime()))
 
 def display_time():
     display_string(strftime('%H%M%S', ncs31x.sync_time()))
 
+# think: add tube mask
 def display_string(digits):
     def get_rep(str_, start):
         bits = (_tube_map[int(str_[start])]) << 20
@@ -76,6 +78,7 @@ def display_string(digits):
 
         return bits
 
+    # think: individually addressed dots?
     def add_dot_to_rep(bits):
         if _dots:
             bits |= ncs31x.LOWER_DOTS_MASK
@@ -87,17 +90,17 @@ def display_string(digits):
         return bits
 
     def fill_buffer(nval, buffer, start):
-        buffer[start] = (nval >> 24 & 0xff)
-        buffer[start + 1] = (nval >> 16) & 0xff
-        buffer[start + 2] = (nval >> 8) & 0xff
-        buffer[start + 3] = nval & 0xff
+        buffer[start] = (nval >> 24 & 0xff) & _tubes_mask[0]
+        buffer[start + 1] = ((nval >> 16) & 0xff) & _tubes_mask[1]
+        buffer[start + 2] = ((nval >> 8) & 0xff) & _tubes_mask[2]
+        buffer[start + 3] = (nval & 0xff) & _tubes_mask[3]
 
         return buffer
 
     left_bits = get_rep(digits, ncs31x.LEFT_REPR_START)
     left_bits = add_dot_to_rep(left_bits)
 
-    buffer = [x for x in range(8)]
+    buffer = [0 for x in range(8)]
     fill_buffer(left_bits, buffer, ncs31x.LEFT_BUFFER_START)
 
     right_bits = get_rep(digits, ncs31x.RIGHT_REPR_START)
@@ -141,22 +144,30 @@ def buttons():
 
 #####################
 #
-#  rotor definition:
+#  rotor language:
 #
 #    name: str         rotor name
 #
 #      ops:
-#        back: [...]        [r, g, b] backlight color
-#        blank: bool        [on|off] turn on/off tubes
-#        date: fmt-str      [fmt-str] push formatted date to tubes
-#        delay: int         [n] delay for n millisecs
-#        display: str       [digits] digit string on tubes
-#        stop:              stop rotor/pop rotor stack
-#        repeat: { count: n, rotor: [...]
-#                           repeat rotor n times
-#        rotor: [...]       anonymous rotor
-#        time: fmt-str      [fmt-str] push formatted time to tubes
-#        tube: {...}        [n, on|off, digit]
+#        rotors:
+#            delay: int         delay for millisecs
+#            repeat: { count: int, rotor: [...]
+#                               repeat rotor count times
+#            rotor: [...]       anonymous rotor definition
+#            stop:              stop rotor/pop rotor stack
+#
+#        display:
+#            back: [r, g, b]    backlight color
+#            blank: true|false  turn on/off tube power
+#            date: str          stuff formatted date to tubes
+#            dots: true|false   enable/disable dots
+#            mask: int          bit mask for tubes [0..255]        
+#            time: str          stuff formatted time to tubes
+#
+#        tube stack:
+#            display: null      stuff top of _tubes_stack onto tubes
+#            pop: null          pop _tubes_stack
+#            push: str          push digit string on _tubes_stack
 #
 #  json:
 #    "rotors" : {
@@ -168,22 +179,34 @@ def buttons():
 
 _exit = None
 def rotor_exec(rotor):
-    global _exit
-    global _dots
+    global _exit, _dots, _tubes_mask, _tubes_stack
 
     _dots = ncs31x.config['dots']
+    
     while True:
         for step in rotor:
             if _exit:
                 _exit = False
                 threading.current_thread.exit()
-            if 'stop' in step:
-                return
-            if 'back' in step:
-                update_backlight(step['back'])
-                continue
+
+            # rotors
             if 'delay' in step:
                 wiringpi.delay(int(step['delay']))
+                continue
+            if 'repeat' in step:
+                def_ = step['repeat']
+                for _ in range(0, def_['count']):
+                    rotor_exec(def_['rotor'])
+                continue
+            if 'rotor' in step:
+                rotor_exec(step['rotor'])
+                continue
+            if 'stop' in step:
+                return
+            
+            # display
+            if 'back' in step:
+                update_backlight(step['back'])
                 continue
             if 'blank' in step:
                 if step['blank']:
@@ -200,17 +223,19 @@ def rotor_exec(rotor):
             if 'time' in step:
                 display_string(strftime(step['time'], ncs31x.sync_time()))
                 continue
-            if 'tube' in step:
-                ncs31x.tube(step['tube'])
+            if 'mask' in step:
+                mask_ = step['mask']
+                for i in range(8):
+                    _tubes_mask[i] = 255 if mask_ & (2 ** i) else 0
                 continue
+
+            # tube stack boogie
             if 'display' in step:
-                display_string(step['display'])
+                display_string(_tubes_stack[0])
                 continue
-            if 'repeat' in step:
-                def_ = step['repeat']
-                for _ in range(0, def_['count']):
-                    rotor_exec(def_['rotor'])
+            if 'pop' in step:
+                _tubes_stack.pop()
                 continue
-            if 'rotor' in step:
-                rotor_exec(step['rotor'])
+            if 'push' in step:
+                _tubes_stack.append(step['push'])
                 continue

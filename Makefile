@@ -10,4 +10,4 @@ venv:
 	@virtualenv venv
 
 install:
-	@pip3 install virtualenv flask uWSGI flask-socketio eventlet pylint
+	@pip3 install wiringpi flask uWSGI flask-socketio eventlet pylint

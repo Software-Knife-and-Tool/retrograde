@@ -90,7 +90,7 @@ _add individual masks_
 { "mask": INT } 
 ```
 
-Set the tube blanking mask, range is 0..255.
+Set the lamp blanking mask, range is 0..255. Bits 0 and 6 are the indicator lamps.
 
 
 

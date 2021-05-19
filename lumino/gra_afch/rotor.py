@@ -15,8 +15,9 @@
 
 import wiringpi
 import ncs31x
+import threading
 
-from time import time, localtime, strftime
+from time import localtime, strftime
 
 _tube_map = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
 _tubes_stack = []
@@ -112,9 +113,9 @@ def display_string(digits):
 
 def buttons():
     # auto pin = _MODE_BUTTON_PIN
-    init_pin(_UP_BUTTON_PIN)
-    init_pin(_DOWN_BUTTON_PIN)
-    init_pin(_MODE_BUTTON_PIN)
+    ncs31x.init_pin(ncs31x.UP_BUTTON_PIN)
+    ncs31x.init_pin(ncs31x.DOWN_BUTTON_PIN)
+    ncs31x.init_pin(ncs31x.MODE_BUTTON_PIN)
 
 #    wiringpi.wiringPiISR(_MODE_BUTTON_PIN, _INT_EDGE_RISING,
 #                    static unsigned long debounce = 0
@@ -161,7 +162,7 @@ def buttons():
 #            blank: true|false  turn on/off tube power
 #            date: str          stuff formatted date to tubes
 #            dots: true|false   enable/disable dots
-#            mask: int          bit mask for tubes [0..255]        
+#            mask: int          bit mask for tubes [0..255]
 #            time: str          stuff formatted time to tubes
 #
 #        tube stack:
@@ -182,7 +183,7 @@ def rotor_exec(rotor):
     global _exit, _dots, _tubes_mask, _tubes_stack
 
     _dots = ncs31x.config['dots']
-    
+
     while True:
         for step in rotor:
             if _exit:
@@ -203,7 +204,7 @@ def rotor_exec(rotor):
                 continue
             if 'stop' in step:
                 return
-            
+
             # display
             if 'back' in step:
                 update_backlight(step['back'])

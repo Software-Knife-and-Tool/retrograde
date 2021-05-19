@@ -19,9 +19,10 @@ uwsgi:
 	@uwsgi --http :5000 --gevent 1000 --http-websockets --master --wsgi-file app.py --callable app
 
 lint:
-	@for i in $(SRCS); do	\
-	    pylint $$i;		\
-	done			\
+	@for i in $(SRCS); do		\
+	    echo -n $$i ": ";		\
+	    pylint $$i | egrep -v "^-";	\
+	done
 
 lint-summary:
 	@make lint | grep code

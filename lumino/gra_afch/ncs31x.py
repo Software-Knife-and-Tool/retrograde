@@ -11,9 +11,9 @@
 ## NCS31X device driver
 ##
 ###########
-
+""" Look at me! I'm a module docstring. """
 import wiringpi
-from time import time, localtime, struct_time, mktime
+# from time import time, localtime, struct_time, mktime
 
 # GPIO constants
 _R5222_PIN = 22
@@ -25,9 +25,10 @@ _I2CFlush = 0
 # NCS31X values
 _DEBOUNCE_DELAY = 150
 _TOTAL_DELAY = 17
-_UP_BUTTON_PIN = 1
-_DOWN_BUTTON_PIN = 4
-_MODE_BUTTON_PIN = 5
+
+UP_BUTTON_PIN = 1
+DOWN_BUTTON_PIN = 4
+MODE_BUTTON_PIN = 5
 
 _BUZZER_PIN = 0
 
@@ -52,7 +53,8 @@ LEFT_BUFFER_START = 0
 RIGHT_REPR_START = 2
 RIGHT_BUFFER_START = 4
 
-_ncsHV5222 = None
+_NCSHV5222 = None
+
 _gpio = None
 config = None
 
@@ -62,7 +64,7 @@ config = None
 
 def blank():
     wiringpi.digitalWrite(_LE_PIN, wiringpi.LOW)
-  
+
 def unblank():
     wiringpi.digitalWrite(_LE_PIN, wiringpi.HIGH)
 
@@ -84,13 +86,19 @@ def write_rtc_time(tm):
 
     def update_rtc_hour(tm):
         wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
-        wiringpi.wiringPiI2CWriteReg8(_gpio, _HOUR_REGISTER, _dec_to_bcd(tm.tm_hour))
+        wiringpi.wiringPiI2CWriteReg8(_gpio,
+                                      _HOUR_REGISTER,
+                                      _dec_to_bcd(tm.tm_hour))
         wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
 
     def update_rtc_minute(tm):
         wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
-        wiringpi.wiringPiI2CWriteReg8(_gpio, _MINUTE_REGISTER, _dec_to_bcd(tm.tm_min))
-        wiringpi.wiringPiI2CWriteReg8(_gpio, _HOUR_REGISTER, _dec_to_bcd(tm.tm_hour))
+        wiringpi.wiringPiI2CWriteReg8(_gpio,
+                                      _MINUTE_REGISTER,
+                                      _dec_to_bcd(tm.tm_min))
+        wiringpi.wiringPiI2CWriteReg8(_gpio,
+                                      _HOUR_REGISTER,
+                                      _dec_to_bcd(tm.tm_hour))
         wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
 
     def reset_rtc_second():
@@ -99,13 +107,27 @@ def write_rtc_time(tm):
         wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
 
     wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
-    wiringpi.wiringPiI2CWriteReg8(_gpio, _SECOND_REGISTER, _dec_to_bcd(tm.tm_sec))
-    wiringpi.wiringPiI2CWriteReg8(_gpio, _MINUTE_REGISTER, _dec_to_bcd(tme.tm_min))
-    wiringpi.wiringPiI2CWriteReg8(_gpio, _HOUR_REGISTER, _dec_to_bcd(tm.tm_hour))
-    wiringpi.wiringPiI2CWriteReg8(_gpio, _WEEK_REGISTER, _dec_to_bcd(tm.tm_wday))
-    wiringpi.wiringPiI2CWriteReg8(_gpio, _DAY_REGISTER, _dec_to_bcd(tm.tm_day))
-    wiringpi.wiringPiI2CWriteReg8(_gpio, _MONTH_REGISTER, _dec_to_bcd(tm.tm_month))
-    wiringpi.wiringPiI2CWriteReg8(_gpio, _YEAR_REGISTER, _dec_to_bcd(tm.tm_year))
+    wiringpi.wiringPiI2CWriteReg8(_gpio,
+                                  _SECOND_REGISTER,
+                                  _dec_to_bcd(tm.tm_sec))
+    wiringpi.wiringPiI2CWriteReg8(_gpio,
+                                  _MINUTE_REGISTER,
+                                  _dec_to_bcd(tm.tm_min))
+    wiringpi.wiringPiI2CWriteReg8(_gpio,
+                                  _HOUR_REGISTER,
+                                  _dec_to_bcd(tm.tm_hour))
+    wiringpi.wiringPiI2CWriteReg8(_gpio,
+                                  _WEEK_REGISTER,
+                                  _dec_to_bcd(tm.tm_wday))
+    wiringpi.wiringPiI2CWriteReg8(_gpio,
+                                  _DAY_REGISTER,
+                                  _dec_to_bcd(tm.tm_day))
+    wiringpi.wiringPiI2CWriteReg8(_gpio,
+                                  _MONTH_REGISTER,
+                                  _dec_to_bcd(tm.tm_month))
+    wiringpi.wiringPiI2CWriteReg8(_gpio,
+                                  _YEAR_REGISTER,
+                                  _dec_to_bcd(tm.tm_year))
     wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
 
 # check the clock skew, if it's off by more than a little bit,
@@ -115,8 +137,9 @@ def sync_time():
     def _bcd_to_dec(val):
         return ((val >> 4) * 10) + (val & 0xf)
 
-    def _12_hour():
-        tm_hour = _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio, _HOUR_REGISTER))
+    def _hour12():
+        tm_hour = _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio,
+                                                           _HOUR_REGISTER))
         if config['12hour'] and tm_hour > 12:
             tm_hour -= 12
 
@@ -124,13 +147,19 @@ def sync_time():
 
     wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
 
-    now = (_bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio, _YEAR_REGISTER)) + 1900,
-           _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio, _MONTH_REGISTER)) + 1,
-           _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio, _DAY_REGISTER)) + 1,
-           _12_hour(),
-           _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio, _MINUTE_REGISTER)),
-           _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio, _SECOND_REGISTER)),
-           _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio, _WEEK_REGISTER)),
+    now = (_bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio,
+                                                    _YEAR_REGISTER)) + 1900,
+           _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio,
+                                                    _MONTH_REGISTER)) + 1,
+           _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio,
+                                                    _DAY_REGISTER)) + 1,
+           _hour12(),
+           _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio,
+                                                    _MINUTE_REGISTER)),
+           _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio,
+                                                    _SECOND_REGISTER)),
+           _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio,
+                                                    _WEEK_REGISTER)),
            1,
            -1)
 
@@ -142,14 +171,14 @@ def sync_time():
 
 def display(tubes):
     def rev_bits(nval):
-        reversed = 0
+        reversed_ = 0
         i = 0
         while i < 64:
             if nval & 1 << i:
-                reversed |= 1 << (63 - i)
-  
-        return reversed
-    
+                reversed_ |= 1 << (63 - i)
+
+        return reversed_
+
     def tube_to_bits(tubes):
         bits = 0
         for n in range(8):
@@ -161,20 +190,20 @@ def display(tubes):
     wiringpi.pinMode(_LE_PIN, wiringpi.OUTPUT)
     wiringpi.digitalWrite(_LE_PIN, wiringpi.LOW)
 
-    display = tubes
-    if _ncsHV5222:
+    display_ = tubes
+    if _NCSHV5222:
         reverse = rev_bits(tube_to_bits(display))
 
-        display[4] = reverse
-        display[5] = reverse >> 8
-        display[6] = reverse >> 16
-        display[7] = reverse >> 24
-        display[0] = reverse >> 32
-        display[1] = reverse >> 40
-        display[2] = reverse >> 48
-        display[3] = reverse >> 56
+        display_[4] = reverse
+        display_[5] = reverse >> 8
+        display_[6] = reverse >> 16
+        display_[7] = reverse >> 24
+        display_[0] = reverse >> 32
+        display_[1] = reverse >> 40
+        display_[2] = reverse >> 48
+        display_[3] = reverse >> 56
 
-    buf = bytes(display)
+    buf = bytes(display_)
     wiringpi.wiringPiSPIDataRW(0, buf)
     wiringpi.digitalWrite(_LE_PIN, wiringpi.HIGH)
 
@@ -188,30 +217,30 @@ def init_pin(pin):
 
 # think: this is ugly
 def func_mode():
-    if ((wiringpi.millis() - func_mode.debounce) > _DEBOUNCE_DELAY):
+    if (wiringpi.millis() - func_mode.debounce) > _DEBOUNCE_DELAY:
         print('MODE button was pressed.')
         func_mode.debounce = wiringpi.millis()
 func_mode.debounce = 0
-  
+
 def func_up():
-    if ((wiringpi.millis() - func_up.debounce) > _DEBOUNCE_DELAY):
+    if (wiringpi.millis() - func_up.debounce) > _DEBOUNCE_DELAY:
         print('UP button was pressed.')
         func_up.debounce = wiringpi.millis()
 func_up.debounce = 0
 
 def func_down():
-    if ((wiringpi.millis() - func_down.debounce) > _DEBOUNCE_DELAY):
+    if (wiringpi.millis() - func_down.debounce) > _DEBOUNCE_DELAY:
         print('DOWN button was pressed.')
         func_down.debounce = wiringpi.millis()
 func_down.debounce = 0
 
 def ncs31x(conf_dict):
-    global _ncsHV5222    # death to globals
+    global _NCSHV5222    # death to globals
     global _gpio
     global config
 
     config = conf_dict
-    
+
     wiringpi.wiringPiSetup()
 
     # wiringpi.softToneCreate(BUZZER_PIN)
@@ -230,7 +259,7 @@ def ncs31x(conf_dict):
         return
 
     # initialize the display
-    wiringpi.pinMode(_R5222_PIN, _INPUT)
-    wiringpi.pullUpDnControl(_R5222_PIN, _PUD_UP)
+    wiringpi.pinMode(_R5222_PIN, wiringpi.INPUT)
+    wiringpi.pullUpDnControl(_R5222_PIN, wiringpi.PUD_UP)
 
-    _ncsHV5222 = not(wiringpi.digitalRead(_R5222_PIN))
+    _NCSHV5222 = not wiringpi.digitalRead(_R5222_PIN)

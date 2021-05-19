@@ -11,6 +11,7 @@
 ## gra-afch controller
 ##
 ###########
+""" Look at me, I'm a module docstring. """
 
 import time
 import json
@@ -28,9 +29,9 @@ _conf_dict = None
 _rotor = None
 
 def default_rotor():
-    if "rotors" in _conf_dict:
+    if 'rotors' in _conf_dict:
         rotors = _conf_dict['rotors']
-        if "default" in rotors:
+        if 'default' in rotors:
             return rotors['default']
 
     return None

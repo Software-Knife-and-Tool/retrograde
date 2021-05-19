@@ -11,7 +11,8 @@
 ## rotors
 ##
 ###########
-""" i'm a module docstring! """
+
+""" the Rotor module implements the rotor programming model """
 
 import wiringpi
 import ncs31x
@@ -20,8 +21,8 @@ import threading
 from time import localtime, strftime
 
 _tube_map = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
-_tubes_stack = []
-_tubes_mask = [255 for _ in range(8)]
+_tube_stack = []
+_tube_mask = [255 for _ in range(8)]
 
 _rotor = None
 _dots = None
@@ -58,19 +59,19 @@ _dots = None
 #    return [r, g, b];
 
 def update_backlight(color):
-    def _scale(nval):
+    def scale_(nval):
         return int(nval * (100 / 255))
 
-    ncs31x.update_backlight([_scale(color[0]),
-                             _scale(color[1]),
-                             _scale(color[2])])
+    ncs31x.update_backlight([scale_(color[0]),
+                             scale_(color[1]),
+                             scale_(color[2])])
+
 def display_date():
     display_string(strftime('%m%d%y', localtime()))
 
 def display_time():
     display_string(strftime('%H%M%S', ncs31x.sync_time()))
 
-# think: add tube mask
 def display_string(digits):
     def get_rep(str_, start):
         bits = (_tube_map[int(str_[start])]) << 20
@@ -91,10 +92,10 @@ def display_string(digits):
         return bits
 
     def fill_buffer(nval, buffer, start):
-        buffer[start] = (nval >> 24 & 0xff) & _tubes_mask[0]
-        buffer[start + 1] = ((nval >> 16) & 0xff) & _tubes_mask[1]
-        buffer[start + 2] = ((nval >> 8) & 0xff) & _tubes_mask[2]
-        buffer[start + 3] = (nval & 0xff) & _tubes_mask[3]
+        buffer[start] = (nval >> 24 & 0xff) & _tube_mask[0]
+        buffer[start + 1] = ((nval >> 16) & 0xff) & _tube_mask[1]
+        buffer[start + 2] = ((nval >> 8) & 0xff) & _tube_mask[2]
+        buffer[start + 3] = (nval & 0xff) & _tube_mask[3]
 
         return buffer
 
@@ -166,9 +167,9 @@ def buttons():
 #            time: str          stuff formatted time to tubes
 #
 #        tube stack:
-#            display: null      stuff top of _tubes_stack onto tubes
-#            pop: null          pop _tubes_stack
-#            push: str          push digit string on _tubes_stack
+#            display: null      stuff top of _tube_stack onto tubes
+#            pop: null          pop _tube_stack
+#            push: str          push digit string on _tube_stack
 #
 #  json:
 #    "rotors" : {
@@ -180,7 +181,7 @@ def buttons():
 
 _exit = None
 def rotor_exec(rotor):
-    global _exit, _dots, _tubes_mask, _tubes_stack
+    global _exit, _dots, _tube_mask, _tube_stack
 
     _dots = ncs31x.config['dots']
 
@@ -216,27 +217,31 @@ def rotor_exec(rotor):
                     ncs31x.unblank()
                 continue
             if 'date' in step:
-                display_string(strftime(step['date'], localtime()))
+                _tube_stack.append(strftime(step['date'], localtime()))
                 continue
             if 'dots' in step:
                 _dots = step['dots']
                 continue
             if 'time' in step:
-                display_string(strftime(step['time'], ncs31x.sync_time()))
+                _tube_stack.append(strftime(step['time'], ncs31x.sync_time()))
                 continue
             if 'mask' in step:
                 mask_ = step['mask']
                 for i in range(8):
-                    _tubes_mask[i] = 255 if mask_ & (2 ** i) else 0
+                    _tube_mask[i] = 255 if mask_ & (2 ** i) else 0
                 continue
 
             # tube stack boogie
             if 'display' in step:
-                display_string(_tubes_stack[0])
+                display_string(_tube_stack[0])
                 continue
             if 'pop' in step:
-                _tubes_stack.pop()
+                _tube_stack.pop()
                 continue
             if 'push' in step:
-                _tubes_stack.append(step['push'])
+                _tube_stack.append(step['push'])
                 continue
+
+            print("unimplemented operation")
+            print(step)
+            threading.current_thread.exit()

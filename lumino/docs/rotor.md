@@ -90,9 +90,20 @@ _add individual masks_
 { "mask": INT } 
 ```
 
-Set the tube blanking mask, range is 0..255.
+Set the lamp blanking mask, range is 0..255. Bits 0 and 6 are the indicator lamp enables.
 
+| bit # | enable mask              | Right mask* |
+| ----- | ------------------------ | ----------- |
+| 0     | 1 - right indicator lamp | 1           |
+| 1     | 2 - tube 0 (rightmost)   | 2           |
+| 2     | 4 - tube 1               | 6           |
+| 3     | 8 - tube 2               | 14          |
+| 4     | 16 - tube 3              | 30          |
+| 5     | 32 - tube 4              | 62          |
+| 6     | 64 - left indicator lamp | 126         |
+| 7     | 128 - tube 5 (leftmost)  | 254         |
 
+\* - add in indicator lamp enables
 
 ###### _Tubes Stack operations_:
 

@@ -91,24 +91,23 @@ def display_string(digits):
 
         return bits
 
-    def fill_buffer(nval, buffer, start):
-        buffer[start] = (nval >> 24 & 0xff) & _tube_mask[0]
-        buffer[start + 1] = ((nval >> 16) & 0xff) & _tube_mask[1]
-        buffer[start + 2] = ((nval >> 8) & 0xff) & _tube_mask[2]
-        buffer[start + 3] = (nval & 0xff) & _tube_mask[3]
+    def fill_buffer(nval, buffer, start, off):
+        buffer[start] = (nval >> 24 & 0xff) & _tube_mask[off]
+        buffer[start + 1] = ((nval >> 16) & 0xff) & _tube_mask[off + 1]
+        buffer[start + 2] = ((nval >> 8) & 0xff) & _tube_mask[off + 2]
+        buffer[start + 3] = (nval & 0xff) & _tube_mask[off + 3]
 
         return buffer
 
+    buffer = [0 for _ in range(8)]
+
     left_bits = get_rep(digits, ncs31x.LEFT_REPR_START)
     left_bits = add_dot_to_rep(left_bits)
-
-    buffer = [0 for x in range(8)]
-    fill_buffer(left_bits, buffer, ncs31x.LEFT_BUFFER_START)
+    fill_buffer(left_bits, buffer, ncs31x.LEFT_BUFFER_START, 0)
 
     right_bits = get_rep(digits, ncs31x.RIGHT_REPR_START)
     right_bits = add_dot_to_rep(right_bits)
-
-    fill_buffer(right_bits, buffer, ncs31x.RIGHT_BUFFER_START)
+    fill_buffer(right_bits, buffer, ncs31x.RIGHT_BUFFER_START, 4)
 
     ncs31x.display(buffer)
 
@@ -144,41 +143,6 @@ def buttons():
 #                      mutex.unlock()
 #                    )
 
-#####################
-#
-#  rotor language:
-#
-#    name: str         rotor name
-#
-#      ops:
-#        rotors:
-#            delay: int         delay for millisecs
-#            repeat: { count: int, rotor: [...]
-#                               repeat rotor count times
-#            rotor: [...]       anonymous rotor definition
-#            stop:              stop rotor/pop rotor stack
-#
-#        display:
-#            back: [r, g, b]    backlight color
-#            blank: true|false  turn on/off tube power
-#            date: str          stuff formatted date to tubes
-#            dots: true|false   enable/disable dots
-#            mask: int          bit mask for tubes [0..255]
-#            time: str          stuff formatted time to tubes
-#
-#        tube stack:
-#            display: null      stuff top of _tube_stack onto tubes
-#            pop: null          pop _tube_stack
-#            push: str          push digit string on _tube_stack
-#
-#  json:
-#    "rotors" : {
-#        "name" : {
-#                   "op": ...,
-#                 },
-#    },
-#
-
 _exit = None
 def rotor_exec(rotor):
     global _exit, _dots, _tube_mask, _tube_stack
@@ -191,6 +155,10 @@ def rotor_exec(rotor):
                 _exit = False
                 threading.current_thread.exit()
 
+            # debugging
+            if 'debug' in step:
+                print(step['print'])
+                continue
             # rotors
             if 'delay' in step:
                 wiringpi.delay(int(step['delay']))
@@ -226,11 +194,12 @@ def rotor_exec(rotor):
                 _tube_stack.append(strftime(step['time'], ncs31x.sync_time()))
                 continue
             if 'mask' in step:
+                # bits 0 and 6 are indicator lamps
+                # rightmost number lamp is bit 1
                 mask_ = step['mask']
                 for i in range(8):
                     _tube_mask[i] = 255 if mask_ & (2 ** i) else 0
                 continue
-
             # tube stack boogie
             if 'display' in step:
                 display_string(_tube_stack[0])

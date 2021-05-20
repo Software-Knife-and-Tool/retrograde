@@ -74,9 +74,12 @@ def display_time():
 
 def display_string(digits):
     def get_rep(str_, start):
-        bits = (_tube_map[int(str_[start])]) << 20
-        bits |= (_tube_map[int(str_[start - 1])]) << 10
-        bits |= (_tube_map[int(str_[start - 2])])
+        def num_(ch):
+            return 0 if ch == ' ' else int(ch)
+            
+        bits = (_tube_map[num_(str_[start])]) << 20
+        bits |= (_tube_map[num_(str_[start - 1])]) << 10
+        bits |= (_tube_map[num_(str_[start - 2])])
 
         return bits
 
@@ -142,16 +145,6 @@ def buttons():
 #                      pin = DOWN_BUTTON_PIN
 #                      mutex.unlock()
 #                    )
-
-# left mask:
-#
-#    128
-#    192
-#    240
-#    248
-#    252
-#    254
-#    255
 
 _exit = None
 def rotor_exec(rotor):

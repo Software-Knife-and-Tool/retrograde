@@ -19,8 +19,8 @@ import wiringpi
 _R5222_PIN = 22
 _LE_PIN = 3
 
-_I2CAddress = 0x68
-_I2CFlush = 0
+_I2C_Address = 0x68
+_I2C_Flush = 0
 
 # NCS31X values
 _DEBOUNCE_DELAY = 150
@@ -85,28 +85,28 @@ def write_rtc_time(tm):
         return (int(val / 10) * 16) + (val % 10)
 
     def update_rtc_hour(tm):
-        wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
+        wiringpi.wiringPiI2CWrite(_gpio, _I2C_Flush)
         wiringpi.wiringPiI2CWriteReg8(_gpio,
                                       _HOUR_REGISTER,
                                       _dec_to_bcd(tm.tm_hour))
-        wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
+        wiringpi.wiringPiI2CWrite(_gpio, _I2C_Flush)
 
     def update_rtc_minute(tm):
-        wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
+        wiringpi.wiringPiI2CWrite(_gpio, _I2C_Flush)
         wiringpi.wiringPiI2CWriteReg8(_gpio,
                                       _MINUTE_REGISTER,
                                       _dec_to_bcd(tm.tm_min))
         wiringpi.wiringPiI2CWriteReg8(_gpio,
                                       _HOUR_REGISTER,
                                       _dec_to_bcd(tm.tm_hour))
-        wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
+        wiringpi.wiringPiI2CWrite(_gpio, _I2C_Flush)
 
     def reset_rtc_second():
-        wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
+        wiringpi.wiringPiI2CWrite(_gpio, _I2C_Flush)
         wiringpi.wiringPiI2CWriteReg8(_gpio, _SECOND_REGISTER, 0)
-        wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
+        wiringpi.wiringPiI2CWrite(_gpio, _I2C_Flush)
 
-    wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
+    wiringpi.wiringPiI2CWrite(_gpio, _I2C_Flush)
     wiringpi.wiringPiI2CWriteReg8(_gpio,
                                   _SECOND_REGISTER,
                                   _dec_to_bcd(tm.tm_sec))
@@ -128,7 +128,7 @@ def write_rtc_time(tm):
     wiringpi.wiringPiI2CWriteReg8(_gpio,
                                   _YEAR_REGISTER,
                                   _dec_to_bcd(tm.tm_year))
-    wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
+    wiringpi.wiringPiI2CWrite(_gpio, _I2C_Flush)
 
 # check the clock skew, if it's off by more than a little bit,
 # sync to the host's time
@@ -145,7 +145,7 @@ def sync_time():
 
         return tm_hour
 
-    wiringpi.wiringPiI2CWrite(_gpio, _I2CFlush)
+    wiringpi.wiringPiI2CWrite(_gpio, _I2C_Flush)
 
     now = (_bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio,
                                                     _YEAR_REGISTER)) + 1900,
@@ -204,6 +204,9 @@ def display(tubes):
         display_[3] = reverse >> 56
 
     buf = bytes(display_)
+
+    print('display')
+    print(tubes)
     wiringpi.wiringPiSPIDataRW(0, buf)
     wiringpi.digitalWrite(_LE_PIN, wiringpi.HIGH)
 
@@ -254,7 +257,7 @@ def ncs31x(conf_dict):
         update_backlight(conf_dict['back_light'])
 
     # open the I2C bus to the NCS31X device
-    _gpio = wiringpi.wiringPiI2CSetup(_I2CAddress)
+    _gpio = wiringpi.wiringPiI2CSetup(_I2C_Address)
     if wiringpi.wiringPiSPISetupMode(0, 2000000, 2):
         return
 

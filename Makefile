@@ -10,4 +10,5 @@ venv:
 	@virtualenv venv
 
 install:
-	@pip3 install wiringpi flask uWSGI flask-socketio eventlet pylint
+	@sudo apt-get install bluetooth bluez libbluetooth-dev
+	@pip3 install wiringpi flask uWSGI flask-socketio eventlet pylint pybluez bluedot

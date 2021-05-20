@@ -92,18 +92,18 @@ _add individual masks_
 
 Set the lamp blanking mask, range is 0..255. Bits 0 and 6 are the indicator lamp enables.
 
-| bit # | enable mask              | Right mask* |
-| ----- | ------------------------ | ----------- |
-| 0     | 1 - right indicator lamp | 1           |
-| 1     | 2 - tube 0 (rightmost)   | 2           |
-| 2     | 4 - tube 1               | 6           |
-| 3     | 8 - tube 2               | 14          |
-| 4     | 16 - tube 3              | 30          |
-| 5     | 32 - tube 4              | 62          |
-| 6     | 64 - left indicator lamp | 126         |
-| 7     | 128 - tube 5 (leftmost)  | 254         |
+| bit # | enable mask              | adjacency mask* (left, right) |
+| ----- | ------------------------ | ----------------------------- |
+| 0     | 1 - right indicator lamp | 1, 255                        |
+| 1     | 2 - tube 0 (rightmost)   | 2, 254                        |
+| 2     | 4 - tube 1               | 6, 252                        |
+| 3     | 8 - tube 2               | 14, 248                       |
+| 4     | 16 - tube 3              | 30, 240                       |
+| 5     | 32 - tube 4              | 62, 224                       |
+| 6     | 64 - left indicator lamp | 126, 192                      |
+| 7     | 128 - tube 5 (leftmost)  | 254, 128                      |
 
-\* - add in indicator lamp enables
+\* - and in indicator lamp enables
 
 ###### _Tubes Stack operations_:
 
@@ -112,6 +112,12 @@ Set the lamp blanking mask, range is 0..255. Bits 0 and 6 are the indicator lamp
 ```
 
 Light tubes from the top of the _tubes stack_. The argument is ignored.
+
+```
+{ "dup": NULL }
+```
+
+Duplicate top of _tubes_stack._
 
 ```
 { "pop": NULL }                     
@@ -124,6 +130,12 @@ Pop the _tubes stack_. The argument is ignored.
 ```
 
 Push digit string onto the _tubes stack_.
+
+```
+{ "shift": { dir="left"|"right", count: INT } }
+```
+
+Shift the top of the _tubes_stack_ INT characters to the right or left. Added characters are spaces.
 
 ```
 { "date": STR }                     

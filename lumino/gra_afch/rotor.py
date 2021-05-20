@@ -27,36 +27,31 @@ _display_stack = []
 _rotor = None
 _dots = None
 
-#
-# use this if we want to accept
-# hex rrggbb strings in json
-#
+def string_to_color(str_):
+    def ctoi_(nib):
+        nval = 0
 
-# def string_to_color(str):
-#    def ctoi(nib):
-#        nval = 0
-#
-#        if nib >= '0' & nib <= '9':
-#            nval = nib - '0'
-#        elif nib >= 'a' & nib <= 'f':
-#            nval = nib - 'a' + 10;
-#        elif (nib >= 'A' & nib <= 'F'):
-#            nval = nib - 'A' + 10
-#        else:
-#            nval = -1
-#        return nval
-#
-#    def channel(msn, lsn):
-#        m = ctoi(msn);
-#        l = ctoi(lsn);
-#
-#        return (m < 0 | l < 0) if -1 else (m << 4) + l
-#
-#    r = channel(str[0], str[1])
-#    g = channel(str[2], str[3])
-#    b = channel(str[4], str[5])
-#
-#    return [r, g, b];
+        if nib >= '0' & nib <= '9':
+            nval = nib - '0'
+        elif nib >= 'a' & nib <= 'f':
+            nval = nib - 'a' + 10;
+        elif (nib >= 'A' & nib <= 'F'):
+            nval = nib - 'A' + 10
+        else:
+            nval = -1
+        return nval
+
+    def channel_(msn, lsn):
+        m = ctoi(msn);
+        l = ctoi(lsn);
+
+        return (m < 0 | l < 0) if -1 else (m << 4) + l
+
+    r = channel(str[0], str[1])
+    g = channel(str[2], str[3])
+    b = channel(str[4], str[5])
+
+    return [r, g, b];
 
 def update_backlight(color):
     def scale_(nval):
@@ -145,7 +140,6 @@ def buttons():
 #                      mutex.unlock()
 #                    )
 
-_exit = None
 def rotor_exec(rotor):
     """
         rotor_exec(rotor): rotor thread function
@@ -154,10 +148,11 @@ def rotor_exec(rotor):
     """
     global _dots
 
+    _exit = None
     _dots = ncs31x.config['dots']
 
     def exec_(rotor, loop):
-        global _exit, _dots, _tube_mask, _display_stack
+        global _dots, _tube_mask, _display_stack
 
         while True:
             for step in rotor:
@@ -220,16 +215,13 @@ def rotor_exec(rotor):
                     continue
 
                 # tube stack boogie
-                if 'date' in step:
-                    _display_stack.append(strftime(step['date'],
-                                                localtime()))
-                    continue
-                if 'time' in step:
-                    _display_stack.append(strftime(step['time'],
+                if 'date-time' in step:
+                    _display_stack.append(strftime(step['date-time'],
                                                 ncs31x.sync_time()))
                     continue
                 if 'display' in step:
-                    display_string(_display_stack[-1])
+                    offset_ = step['display']
+                    display_string(_display_stack[-offset_])
                     continue
                 if 'dup' in step:
                     tos_ = _display_stack.pop()
@@ -247,16 +239,15 @@ def rotor_exec(rotor):
                     _display_stack.append(tos_)
                     continue
                 if 'pop' in step:
-                    _display_stack.pop()
+                    n_ = step['pop']
+                    _display_stack.pop(-1 if n_ == 1 else n_)
                     continue
                 if 'push' in step:
                     _display_stack.append(step['push'])
                     continue
                 if 'inc' in step:
-                    _display_stack.append(str(int(_display_stack.pop()) + 1))
-                    continue
-                if 'dec' in step:
-                    _display_stack.append(str(int(_display_stack.pop()) - 1))
+                    n_ = step['inc']
+                    _display_stack.append(str(int(_display_stack.pop()) + n_))
                     continue
 
                 print('unimplemented operation')

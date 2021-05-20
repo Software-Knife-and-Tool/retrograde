@@ -264,8 +264,7 @@ This is the default rotor definition, which runs on startup.
                                                   { "delay": 500 },
                                                   { "blank": true },
                                                   { "delay": 500 },
-                                                  { "blank": false },
-                                                  { "stop": true }
+                                                  { "blank": false }
                                                 ]}},
                          { "blank": true },
                          { "delay": 1000 },

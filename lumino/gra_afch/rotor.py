@@ -74,9 +74,12 @@ def display_time():
 
 def display_string(digits):
     def get_rep(str_, start):
-        bits = (_tube_map[int(str_[start])]) << 20
-        bits |= (_tube_map[int(str_[start - 1])]) << 10
-        bits |= (_tube_map[int(str_[start - 2])])
+        def num_(ch):
+            return 0 if ch == ' ' else int(ch)
+            
+        bits = (_tube_map[num_(str_[start])]) << 20
+        bits |= (_tube_map[num_(str_[start - 1])]) << 10
+        bits |= (_tube_map[num_(str_[start - 2])])
 
         return bits
 
@@ -157,7 +160,9 @@ def rotor_exec(rotor):
 
             # debugging
             if 'debug' in step:
-                print(step['print'])
+                print(step['debug'])
+                for i in _tube_stack:
+                    print(i)
                 continue
             # rotors
             if 'delay' in step:
@@ -184,14 +189,8 @@ def rotor_exec(rotor):
                 else:
                     ncs31x.unblank()
                 continue
-            if 'date' in step:
-                _tube_stack.append(strftime(step['date'], localtime()))
-                continue
             if 'dots' in step:
                 _dots = step['dots']
-                continue
-            if 'time' in step:
-                _tube_stack.append(strftime(step['time'], ncs31x.sync_time()))
                 continue
             if 'mask' in step:
                 # bits 0 and 6 are indicator lamps
@@ -200,9 +199,36 @@ def rotor_exec(rotor):
                 for i in range(8):
                     _tube_mask[i] = 255 if mask_ & (2 ** i) else 0
                 continue
+
             # tube stack boogie
+            if 'date' in step:
+                _tube_stack.append(strftime(step['date'], localtime()))
+                continue
+            if 'time' in step:
+                _tube_stack.append(strftime(step['time'], ncs31x.sync_time()))
+                continue
             if 'display' in step:
-                display_string(_tube_stack[0])
+                display_string(_tube_stack[-1])
+                continue
+            if 'dup' in step:
+                tos_ = _tube_stack.pop()
+                _tube_stack.append(tos_)
+                _tube_stack.append(tos_)
+                continue
+            if 'shift' in step:
+                def_ = step['shift']
+                dir_ = def_['dir']
+                count_ = def_['count']
+                tos_ = _tube_stack[-1]
+
+                for _ in range(count_):
+                    if dir_ == 'left':
+                        print("shift left")
+                        tos_ = tos_[1:] + ' '
+                    if dir_ == 'right':
+                        print("shift right")
+                        tos_ = tos_[:-1] + ' '
+                _tube_stack.append(tos_)
                 continue
             if 'pop' in step:
                 _tube_stack.pop()
@@ -213,4 +239,3 @@ def rotor_exec(rotor):
 
             print("unimplemented operation")
             print(step)
-            threading.current_thread.exit()

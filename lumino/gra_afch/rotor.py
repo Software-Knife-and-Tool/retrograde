@@ -147,89 +147,106 @@ def buttons():
 
 _exit = None
 def rotor_exec(rotor):
+    """
+        rotor_exec(rotor): rotor thread function
+             rotor: a list of rotor operations
+             returns: void
+    """
     global _exit, _dots, _tube_mask, _tube_stack
 
     _dots = ncs31x.config['dots']
 
-    while True:
-        for step in rotor:
-            if _exit:
-                _exit = False
-                threading.current_thread.exit()
+    def exec_(rotor, loop):
+        while True:
+            for step in rotor:
+                if _exit:
+                    # _exit = False
+                    threading.current_thread.exit()
 
-            # debugging
-            if 'debug' in step:
-                print(step['debug'])
-                for i in _tube_stack:
-                    print(i)
-                continue
-            # rotors
-            if 'delay' in step:
-                wiringpi.delay(int(step['delay']))
-                continue
-            if 'repeat' in step:
-                def_ = step['repeat']
-                for _ in range(0, def_['count']):
-                    rotor_exec(def_['rotor'])
-                continue
-            if 'rotor' in step:
-                rotor_exec(step['rotor'])
-                continue
-            if 'stop' in step:
-                return
+                # debugging
+                if 'debug' in step:
+                    print(step['debug'])
+                    for i in _tube_stack:
+                        print(i)
+                    continue
+                # rotors
+                if 'delay' in step:
+                    wiringpi.delay(int(step['delay']))
+                    continue
+                if 'repeat' in step:
+                    def_ = step['repeat']
+                    op_ = def_['block'] if 'block' in def_ else def_['loop']  
+                    loop_ = 'loop' in def_
+                    
+                    for _ in range(def_['count']):
+                        exec_(op_, loop_)
+                    continue
+                if 'loop' in step:
+                    exec_(step['loop'], True)
+                    continue
+                if 'block' in step:
+                    exec_(step['block'], False)
+                    continue
+                if 'stop' in step:
+                    return
 
-            # display
-            if 'back' in step:
-                update_backlight(step['back'])
-                continue
-            if 'blank' in step:
-                if step['blank']:
-                    ncs31x.blank()
-                else:
-                    ncs31x.unblank()
-                continue
-            if 'dots' in step:
-                _dots = step['dots']
-                continue
-            if 'mask' in step:
-                # bits 0 and 6 are indicator lamps
-                # rightmost number lamp is bit 1
-                mask_ = step['mask']
-                for i in range(8):
-                    _tube_mask[i] = 255 if mask_ & (2 ** i) else 0
-                continue
+                # display
+                if 'back' in step:
+                    update_backlight(step['back'])
+                    continue
+                if 'blank' in step:
+                    if step['blank']:
+                        ncs31x.blank()
+                    else:
+                        ncs31x.unblank()
+                    continue
+                if 'dots' in step:
+                    _dots = step['dots']
+                    continue
+                if 'mask' in step:
+                    # bits 0 and 6 are indicator lamps
+                    # rightmost number lamp is bit 1
+                    mask_ = step['mask']
+                    for i in range(8):
+                        _tube_mask[i] = 255 if mask_ & (2 ** i) else 0
+                    continue
 
-            # tube stack boogie
-            if 'date' in step:
-                _tube_stack.append(strftime(step['date'], localtime()))
-                continue
-            if 'time' in step:
-                _tube_stack.append(strftime(step['time'], ncs31x.sync_time()))
-                continue
-            if 'display' in step:
-                display_string(_tube_stack[-1])
-                continue
-            if 'dup' in step:
-                tos_ = _tube_stack.pop()
-                _tube_stack.append(tos_)
-                _tube_stack.append(tos_)
-                continue
-            if 'shift' in step:
-                def_ = step['shift']
-                dir_ = def_['dir']
-                count_ = def_['count']
-                tos_ = _tube_stack[-1]
+                # tube stack boogie
+                if 'date' in step:
+                    _tube_stack.append(strftime(step['date'], localtime()))
+                    continue
+                if 'time' in step:
+                    _tube_stack.append(strftime(step['time'], ncs31x.sync_time()))
+                    continue
+                if 'display' in step:
+                    display_string(_tube_stack[-1])
+                    continue
+                if 'dup' in step:
+                    tos_ = _tube_stack.pop()
+                    _tube_stack.append(tos_)
+                    _tube_stack.append(tos_)
+                    continue
+                if 'shift' in step:
+                    def_ = step['shift']
+                    dir_ = def_['dir']
+                    count_ = def_['count']
+                    tos_ = _tube_stack[-1]
 
-                for _ in range(count_):
-                    tos_ = tos_[1:] + ' ' if dir_ == 'left' else tos_[:-1] + ' '
-                _tube_stack.append(tos_)
-                continue
-            if 'pop' in step:
-                _tube_stack.pop()
-                continue
-            if 'push' in step:
-                _tube_stack.append(step['push'])
-                continue
+                    for _ in range(count_):
+                        tos_ = tos_[1:] + ' ' if dir_ == 'left' else tos_[:-1] + ' '
+                    _tube_stack.append(tos_)
+                    continue
+                if 'pop' in step:
+                    _tube_stack.pop()
+                    continue
+                if 'push' in step:
+                    _tube_stack.append(step['push'])
+                    continue
 
-            print('unimplemented operation')
-            print(step)
+                print('unimplemented operation')
+                print(step)
+
+            if not(loop):
+                break;
+        
+    exec_(rotor, True)

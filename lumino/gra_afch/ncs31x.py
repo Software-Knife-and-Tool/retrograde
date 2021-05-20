@@ -205,8 +205,6 @@ def display(tubes):
 
     buf = bytes(display_)
 
-    print('display')
-    print(tubes)
     wiringpi.wiringPiSPIDataRW(0, buf)
     wiringpi.digitalWrite(_LE_PIN, wiringpi.HIGH)
 

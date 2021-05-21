@@ -8,21 +8,22 @@
 
 ##########
 ##
-## lumino initialization
+## retrograde initialization
 ##
 ###########
+
 """ look at me! I'm a docstring """
+
 import json
-import bluetooth.py
 
 VERSION = '0.0.1'
 
 _conf_dict = None
 
-def lumino():
+def retrograde():
     global _conf_dict
 
-    with open('./lumino/lumino.conf', 'r') as file:
+    with open('./retrograde/retrograde.conf', 'r') as file:
         _conf_dict = json.load(file)
 
     return _conf_dict

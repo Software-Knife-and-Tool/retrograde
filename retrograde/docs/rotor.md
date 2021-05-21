@@ -5,7 +5,7 @@
 A _rotor_ is a list of rotor operations executed by a rotor thread. Rotors are coded in _json_, nominally defined in:
 
 ```
-lumino/gra_afch/gra_afch.conf
+retrograde/gra_afch/gra_afch.conf
 ```
 
 Rotors are defined as either a _block_ or a _loop_. Active rotors are maintained on an implicit _rotor stack_ to allow nesting and event displays.

@@ -8,7 +8,7 @@
 
 ##########
 ##
-## lumino app
+## retrograde app
 ##
 ###########
 """ i'm a module docstring """
@@ -21,7 +21,7 @@ from datetime import datetime
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 
-import lumino
+import retrograde
 import gra_afch
 
 app = Flask(__name__, instance_relative_config=True)
@@ -30,7 +30,7 @@ app.config.from_mapping(
     # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
 )
 
-_lumino_conf = lumino.lumino()
+_retrograde_conf = retrograde.retrograde()
 _gra_afch_conf = gra_afch.gra_afch()
 
 socketio = SocketIO(app)
@@ -50,9 +50,9 @@ def send_message(obj):
 def render():
     return render_template('index.html',
                            host=socket.gethostname(),
-                           version=lumino.VERSION,
+                           version=retrograde.VERSION,
                            serial='0001',
-                           lumino_conf=_lumino_conf,
+                           retrograde_conf=_retrograde_conf,
                            gra_afch_conf=_gra_afch_conf,
                            skew=0.0,
                            date=datetime.now().strftime('%B %d, %Y %H:%M:%S ')

@@ -2,6 +2,6 @@
 
 _Beating Yesterday's Technology Right Into the Ground_
 
-* Lumino:
+* Retrograde:
   * web app 
   * GRA-AFCH NCS31X controller

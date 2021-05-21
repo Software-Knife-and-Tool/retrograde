@@ -16,7 +16,7 @@ import sys
 import threading
 
 # this cleverness brought to you courtesy of having to sudo
-sys.path.append(r'/home/lumino/lumino/lumino/gra_afch')
+sys.path.append(r'/home/retrograde/retrograde/retrograde/gra_afch')
 
 from ncs31x import blank, ncs31x
 

@@ -8,7 +8,7 @@
 
 ##########
 ##
-## lumino initialization
+## retrograde initialization
 ##
 ###########
 
@@ -19,7 +19,6 @@ from bluedot import BlueDot
 
 VERSION = '0.0.1'
 
-def bluetooth():
 _conf_dict = None
 
 def bluetooth():

@@ -27,31 +27,31 @@ _display_stack = []
 _rotor = None
 _dots = None
 
-def string_to_color(str_):
-    def ctoi_(nib):
-        nval = 0
-
-        if nib >= '0' & nib <= '9':
-            nval = nib - '0'
-        elif nib >= 'a' & nib <= 'f':
-            nval = nib - 'a' + 10;
-        elif (nib >= 'A' & nib <= 'F'):
-            nval = nib - 'A' + 10
-        else:
-            nval = -1
-        return nval
-
-    def channel_(msn, lsn):
-        m = ctoi(msn);
-        l = ctoi(lsn);
-
-        return (m < 0 | l < 0) if -1 else (m << 4) + l
-
-    r = channel(str[0], str[1])
-    g = channel(str[2], str[3])
-    b = channel(str[4], str[5])
-
-    return [r, g, b];
+# def string_to_color(str_):
+#    def ctoi_(nib):#
+#        nval = 0
+#
+#        if nib >= '0' & nib <= '9':
+#            nval = nib - '0'
+#        elif nib >= 'a' & nib <= 'f':
+#            nval = nib - 'a' + 10;
+#        elif (nib >= 'A' & nib <= 'F'):
+#            nval = nib - 'A' + 10
+#        else:
+#            nval = -1
+#        return nval
+#
+#    def channel_(msn, lsn):
+#        m = ctoi(msn);
+#        l = ctoi(lsn);
+#
+#        return (m < 0 | l < 0) if -1 else (m << 4) + l
+#
+#    r = channel(str[0], str[1])
+#    g = channel(str[2], str[3])
+#    b = channel(str[4], str[5])
+#
+#    return [r, g, b];
 
 def update_backlight(color):
     def scale_(nval):

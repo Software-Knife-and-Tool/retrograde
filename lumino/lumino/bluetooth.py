@@ -11,18 +11,18 @@
 ## lumino initialization
 ##
 ###########
-""" look at me! I'm a docstring """
+
+""" look at me! I'm a docstring! """
+
 import json
-import bluetooth.py
+from bluedot import BlueDot
 
 VERSION = '0.0.1'
 
+def bluetooth():
 _conf_dict = None
 
-def lumino():
-    global _conf_dict
-
-    with open('./lumino/lumino.conf', 'r') as file:
-        _conf_dict = json.load(file)
-
-    return _conf_dict
+def bluetooth():
+    bd = BlueDot()
+    bd.wait_for_press()
+    print("You pressed the blue dot!")

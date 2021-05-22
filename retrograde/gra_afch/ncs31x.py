@@ -11,7 +11,9 @@
 ## NCS31X device driver
 ##
 ###########
+
 """ Look at me! I'm a module docstring. """
+
 import wiringpi
 # from time import time, localtime, struct_time, mktime
 
@@ -130,8 +132,12 @@ def write_rtc_time(tm):
                                   _dec_to_bcd(tm.tm_year))
     wiringpi.wiringPiI2CWrite(_gpio, _I2C_Flush)
 
-# check the clock skew, if it's off by more than a little bit,
+
+#
+# check the clock skew
+# if it's off by more than a little bit,
 # sync to the host's time
+#
 
 def sync_time():
     def _bcd_to_dec(val):
@@ -148,7 +154,8 @@ def sync_time():
     wiringpi.wiringPiI2CWrite(_gpio, _I2C_Flush)
 
     now = (_bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio,
-                                                    _YEAR_REGISTER)) + 1900,
+                                                    _YEAR_REGISTER))
+                       + 1900,
            _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio,
                                                     _MONTH_REGISTER)) + 1,
            _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio,

@@ -31,4 +31,3 @@ def bluetooth():
     bd.wait_for_press()
     print("You pressed the blue dot!")
 
-events.event('retrograde', 'bluetooth', 0)

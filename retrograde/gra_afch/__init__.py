@@ -25,13 +25,14 @@ sys.path.append(r'/home/lumino/retrograde/retrograde/gra_afch')
 
 from ncs31x import blank, ncs31x
 from rotor import rotor_proc
-from events import find, event
+from events import find, register
 
 VERSION = '0.0.1'
 
 _conf_dict = None
 _rotor = None
 _events = None
+_lock = None
 
 def default_rotor():
     if 'rotors' in _conf_dict:
@@ -41,18 +42,6 @@ def default_rotor():
 
     return None
 
-def events():
-    def event_proc():
-        while True:
-            while True:
-                event = find('gra_afch')
-                if event == None:
-                    break
-            time.sleep(10)
-
-    _events = Process(target = event_proc)
-    _events.start()
-    
 def rotor(rotor_def):
     global _rotor
 
@@ -66,6 +55,15 @@ def rotor(rotor_def):
 def gra_afch():
     global _rotor
     global _conf_dict
+    global _lock
+
+    def event_proc():
+        while True:
+            event = find('gra_afch', _lock)
+            print('(gra-afch event:')
+            print(event)
+            print(')')
+            # event loop processing here
 
     with open('./gra_afch/gra-afch.conf', 'r') as file:
         _conf_dict = json.load(file)
@@ -74,8 +72,13 @@ def gra_afch():
     assert default_rotor() != None
 
     rotor(default_rotor())
-    events()
 
-    event('gra_afch', 'hello', 0)
+    _lock = Lock();
+    _lock.acquire();
+    
+    _events = Process(target = event_proc)
+    _events.start()
+
+    register('gra_afch', 'hello', 0)
     
     return _conf_dict

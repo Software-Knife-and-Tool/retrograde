@@ -10,46 +10,55 @@
 ##
 ## events
 ##
-###########
+##########
 
 import json
 from multiprocessing import Lock
 
-############
+##########
 #
 # events:
 #
 # { "event": { "source": MODULE, "type" : TYPE, "id": ID } }
 #
-# SOURCE: retrograde, gra_afch, integration
+# MODULE: retrograde, gra_afch, integration
 # TYPE:   button1, button2, button3, timer, alarm, ui-control, integration
-# ID: context-based
+# ID:     context-based
 #
-# should sneak in a timestamp somehow
+# sneak in a timestamp somehow?
 #
 
 _queue = []
-_lock = Lock()
+_queue_lock = Lock()
 
-def event(source, type, id):
+def register(source, type, id):
     global _queue
 
     fmt = '{{ "event": {{ "source": "{}", "type": "{}", "id": {} }} }}'
-
-    with _lock:
+    with _queue_lock:
         _queue.append(json.loads(fmt.format(source, type, id)));
 
-def find(source):
+def find(source, lock):
     global _queue
 
-    def_ = None
-    
-    with _lock:
+    def in_queue(source):
         for event in _queue:
             def_ = event['event']
             src_ = def_['source']
             if source == src_:
-                _queue.remove(event)
-                break
+                return def_
+
+        return None
+
+    _def = None
+
+    lock.acquire()
+    with _queue_lock:
+        def_ = in_queue(source)
+        if def_:
+            print(def_)
+            _queue.remove(def_)
+            if in_queue(source):
+                lock.release()
 
     return def_

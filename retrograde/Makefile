@@ -9,6 +9,13 @@ SRCS = \
 	gra_afch/ncs31x.py  	\
 	gra_afch/__init__.py
 
+venv:
+	@virtualenv venv
+
+install:
+	@sudo apt-get install bluetooth bluez libbluetooth-dev
+	@pip3 install wiringpi flask uWSGI flask-socketio eventlet pylint pybluez bluedot dbus-python
+
 blank:
 	@sudo env "PATH=/home/lumino/retrograde/venv/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/home/lumino/bin:/home/lumino/.local/bin:." python3 gra_afch/blank.py
 

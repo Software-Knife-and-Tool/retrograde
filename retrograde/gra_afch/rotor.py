@@ -61,12 +61,6 @@ def update_backlight(color):
                              scale_(color[1]),
                              scale_(color[2])])
 
-def display_date():
-    display_string(strftime('%m%d%y', localtime()))
-
-def display_time():
-    display_string(strftime('%H%M%S', ncs31x.sync_time()))
-
 def display_string(digits):
     def tubes_(str_, start):
         def num_(ch):
@@ -140,9 +134,9 @@ def buttons():
 #                      mutex.unlock()
 #                    )
 
-def rotor_exec(rotor):
+def rotor_proc(rotor):
     """
-        rotor_exec(rotor): rotor thread function
+        rotor_proc(rotor): rotor thread function
              rotor: a list of rotor operations
              returns: void
     """
@@ -158,7 +152,8 @@ def rotor_exec(rotor):
             for step in rotor:
                 if _exit:
                     # _exit = False
-                    threading.current_thread.exit()
+                    # threading.current_thread.exit()
+                    pass
 
                 # debugging
                 if 'debug' in step:

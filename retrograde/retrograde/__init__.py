@@ -17,13 +17,13 @@
 import json
 import sys
 import time
-from multiprocessing import Process, Lock
+from threading import Thread, Lock
 
 # this cleverness brought to you courtesy of having to sudo
 sys.path.append(r'/home/lumino/retrograde/retrograde/retrograde')
 
 import config
-from events import find, register
+from events import find, make_event, register
 
 VERSION = '0.0.1'
 
@@ -40,9 +40,8 @@ def retrograde():
     def event_proc():
         while True:
             event = find('retrograde', _lock)
-            print('(retrograde event:')
+            print('retrograde event:')
             print(event)
-            print(')')
             # event loop processing here
 
     with open('./retrograde/retrograde.conf', 'r') as file:
@@ -51,9 +50,10 @@ def retrograde():
     _lock = Lock()
     _lock.acquire()
     
-    _events = Process(target = event_proc)
+    _events = Thread(target = event_proc)
     _events.start()
+    register('retrograde', _lock)
 
-    register('retrograde', 'hello', 0)
+    make_event('retrograde', 'hello', 0)
     
     return _conf_dict

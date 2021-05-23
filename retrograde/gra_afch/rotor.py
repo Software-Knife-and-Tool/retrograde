@@ -134,6 +134,104 @@ def buttons():
 #                      mutex.unlock()
 #                    )
 
+def exec_(rotor):
+    global _dots, _tube_mask, _display_stack
+
+    for step in rotor:
+        # debugging
+        if 'debug' in step:
+            print(step['debug'])
+            for i in _display_stack:
+                print(i)
+            continue
+
+        # rotors
+        if 'delay' in step:
+            wiringpi.delay(int(step['delay']))
+            continue
+        if 'repeat' in step:
+            def_ = step['repeat']
+            op_ = def_['block'] if 'block' in def_ else def_['loop']
+            loop_ = 'loop' in def_
+
+            # maraschino
+            for _ in range(def_['count']):
+                exec_(op_)
+            continue
+        if 'loop' in step:
+            exec_(step['loop'])
+            continue
+        if 'block' in step:
+            exec_(step['block'])
+            continue
+        if 'return' in step:
+            return
+        if 'return?' in step:
+            if int(_display_stack[-1]) == 0:
+                _display_stack.pop()
+                return
+            continue
+
+        # display
+        if 'back' in step:
+            update_backlight(step['back'])
+            continue
+        if 'blank' in step:
+            if step['blank']:
+                ncs31x.blank()
+            else:
+                ncs31x.unblank()
+            continue
+        if 'dots' in step:
+            _dots = step['dots']
+            continue
+        if 'mask' in step:
+            # bits 0 and 6 are indicator lamps
+            # rightmost number lamp is bit 1
+            mask_ = step['mask']
+            for i in range(8):
+                _tube_mask[i] = 255 if mask_ & (2 ** i) else 0
+            continue
+
+        # tube stack boogie
+        if 'date-time' in step:
+            _display_stack.append(strftime(step['date-time'],
+                                           ncs31x.sync_time()))
+            continue
+        if 'display' in step:
+            offset_ = step['display']
+            display_string(_display_stack[-offset_])
+            continue
+        if 'dup' in step:
+            tos_ = _display_stack.pop()
+            _display_stack.append(tos_)
+            _display_stack.append(tos_)
+            continue
+        if 'shift' in step:
+            def_ = step['shift']
+            dir_ = def_['dir']
+            count_ = def_['count']
+            tos_ = _display_stack[-1]
+
+            for _ in range(count_):
+                tos_ = (tos_[1:] if dir_ == 'left' else tos_[:-1]) + ' '
+                _display_stack.append(tos_)
+            continue
+        if 'pop' in step:
+            n_ = step['pop']
+            _display_stack.pop(-1 if n_ == 1 else n_)
+            continue
+        if 'push' in step:
+            _display_stack.append(step['push'])
+            continue
+        if 'inc' in step:
+            n_ = step['inc']
+            _display_stack.append(str(int(_display_stack.pop()) + n_))
+            continue
+
+        print('unimplemented operation')
+        print(step)
+
 def rotor_proc(rotor):
     """
         rotor_proc(rotor): rotor thread function
@@ -142,113 +240,8 @@ def rotor_proc(rotor):
     """
     global _dots
 
-    _exit = None
     _dots = ncs31x.config['dots']
 
-    def exec_(rotor, loop):
-        global _dots, _tube_mask, _display_stack
+    while True:
+        exec_(rotor)
 
-        while True:
-            for step in rotor:
-                if _exit:
-                    # _exit = False
-                    # threading.current_thread.exit()
-                    pass
-
-                # debugging
-                if 'debug' in step:
-                    print(step['debug'])
-                    for i in _display_stack:
-                        print(i)
-                    continue
-
-                # rotors
-                if 'delay' in step:
-                    wiringpi.delay(int(step['delay']))
-                    continue
-                if 'repeat' in step:
-                    def_ = step['repeat']
-                    op_ = def_['block'] if 'block' in def_ else def_['loop']
-                    loop_ = 'loop' in def_
-
-                    for _ in range(def_['count']):
-                        exec_(op_, loop_)
-                    continue
-                if 'loop' in step:
-                    exec_(step['loop'], True)
-                    continue
-                if 'block' in step:
-                    exec_(step['block'], False)
-                    continue
-                if 'return' in step:
-                    return
-                if 'return?' in step:
-                    if int(_display_stack[-1]) == 0:
-                        _display_stack.pop()
-                        return
-                    continue
-
-                # display
-                if 'back' in step:
-                    update_backlight(step['back'])
-                    continue
-                if 'blank' in step:
-                    if step['blank']:
-                        ncs31x.blank()
-                    else:
-                        ncs31x.unblank()
-                    continue
-                if 'dots' in step:
-                    _dots = step['dots']
-                    continue
-                if 'mask' in step:
-                    # bits 0 and 6 are indicator lamps
-                    # rightmost number lamp is bit 1
-                    mask_ = step['mask']
-                    for i in range(8):
-                        _tube_mask[i] = 255 if mask_ & (2 ** i) else 0
-                    continue
-
-                # tube stack boogie
-                if 'date-time' in step:
-                    _display_stack.append(strftime(step['date-time'],
-                                                ncs31x.sync_time()))
-                    continue
-                if 'display' in step:
-                    offset_ = step['display']
-                    display_string(_display_stack[-offset_])
-                    continue
-                if 'dup' in step:
-                    tos_ = _display_stack.pop()
-                    _display_stack.append(tos_)
-                    _display_stack.append(tos_)
-                    continue
-                if 'shift' in step:
-                    def_ = step['shift']
-                    dir_ = def_['dir']
-                    count_ = def_['count']
-                    tos_ = _display_stack[-1]
-
-                    for _ in range(count_):
-                        tos_ = (tos_[1:] if dir_ == 'left' else tos_[:-1]) + ' '
-                    _display_stack.append(tos_)
-                    continue
-                if 'pop' in step:
-                    n_ = step['pop']
-                    _display_stack.pop(-1 if n_ == 1 else n_)
-                    continue
-                if 'push' in step:
-                    _display_stack.append(step['push'])
-                    continue
-                if 'inc' in step:
-                    n_ = step['inc']
-                    _display_stack.append(str(int(_display_stack.pop()) + n_))
-                    continue
-
-                print('unimplemented operation')
-                print(step)
-
-            if not loop:
-                break
-
-    exec_(rotor, True)

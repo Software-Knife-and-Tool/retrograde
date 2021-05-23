@@ -18,18 +18,19 @@ import json
 import sys
 import time
 
-from multiprocessing import Process, Lock
+from threading import Thread, Lock
 
 # this cleverness brought to you courtesy of having to sudo
 sys.path.append(r'/home/lumino/retrograde/retrograde/gra_afch')
 
 from ncs31x import blank, ncs31x
-from rotor import rotor_proc
-from events import find, register
+from rotor import rotor_proc, exec_
+from events import find, make_event, register
 
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 
 _conf_dict = None
+
 _rotor = None
 _events = None
 _lock = None
@@ -42,16 +43,28 @@ def default_rotor():
 
     return None
 
-def rotor(rotor_def):
+def default_events():
+    if 'events' in _conf_dict:
+        return _conf_dict['events']
+
+    return None
+
+def _run_rotor(rotor_def):
     global _rotor
 
     if _rotor:
-        rotor._exit = True
+        _rotor._exit = True
         _rotor.join()
 
-    _rotor = Process(target = rotor_proc, args = (rotor_def, ))
+    _rotor = Thread(target = rotor_proc, args = (rotor_def, ))
     _rotor.start()
-    
+
+def _run_event(ev):
+    event = next((x for x in default_events() if ev['type'] in x), None)
+
+    if event:
+        exec_(event[ev['type']])
+                   
 def gra_afch():
     global _rotor
     global _conf_dict
@@ -60,25 +73,23 @@ def gra_afch():
     def event_proc():
         while True:
             event = find('gra_afch', _lock)
-            print('(gra-afch event:')
+            print('gra-afch event:')
             print(event)
-            print(')')
-            # event loop processing here
+            _run_event(event)
 
     with open('./gra_afch/gra-afch.conf', 'r') as file:
         _conf_dict = json.load(file)
         ncs31x(_conf_dict)
 
-    assert default_rotor() != None
-
-    rotor(default_rotor())
+    _run_rotor(default_rotor())
 
     _lock = Lock();
     _lock.acquire();
-    
-    _events = Process(target = event_proc)
+
+    register('gra_afch', _lock)
+    make_event('gra_afch', 'hello', 0)
+
+    _events = Thread(target = event_proc)
     _events.start()
 
-    register('gra_afch', 'hello', 0)
-    
     return _conf_dict

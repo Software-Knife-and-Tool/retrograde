@@ -12,12 +12,16 @@
 ##
 ###########
 
-""" look at me! I'm a docstring! """
+"""
+
+     look at me! I'm a docstring!
+
+"""
 
 import json
 import sys
 
-sys.path.append(r'/home/lumino/retrograde/retrograde/retrograde')
+sys.path.append(r'/home/lumino/retrograde/retrograde/retro')
 import events
 
 from bluedot import BlueDot
@@ -30,4 +34,3 @@ def bluetooth():
     bd = BlueDot()
     bd.wait_for_press()
     print("You pressed the blue dot!")
-

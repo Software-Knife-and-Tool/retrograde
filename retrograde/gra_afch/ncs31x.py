@@ -12,7 +12,11 @@
 ##
 ###########
 
-""" Look at me! I'm a module docstring. """
+"""
+
+     Look at me! I'm a module docstring. 
+
+"""
 
 import wiringpi
 # from time import time, localtime, struct_time, mktime
@@ -56,9 +60,8 @@ RIGHT_REPR_START = 2
 RIGHT_BUFFER_START = 4
 
 _NCSHV5222 = None
-
 _gpio = None
-config = None
+_conf_dict = None
 
 #
 # display controls
@@ -70,10 +73,11 @@ def blank():
 def unblank():
     wiringpi.digitalWrite(_LE_PIN, wiringpi.HIGH)
 
-def update_backlight(color):
+def backlight(color):
     wiringpi.softPwmWrite(_RED_LIGHT_PIN, color[0])
     wiringpi.softPwmWrite(_GREEN_LIGHT_PIN, color[1])
     wiringpi.softPwmWrite(_BLUE_LIGHT_PIN, color[2])
+
 #
 # RTC functions
 #
@@ -146,7 +150,7 @@ def sync_time():
     def _hour12():
         tm_hour = _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio,
                                                            _HOUR_REGISTER))
-        if config['12hour'] and tm_hour > 12:
+        if _conf_dict['12hour'] and tm_hour > 12:
             tm_hour -= 12
 
         return tm_hour
@@ -243,11 +247,9 @@ def func_down():
 func_down.debounce = 0
 
 def ncs31x(conf_dict):
-    global _NCSHV5222    # death to globals
-    global _gpio
-    global config
+    global _NCSHV5222, _gpio, _conf_dict
 
-    config = conf_dict
+    _conf_dict = conf_dict
 
     wiringpi.wiringPiSetup()
 
@@ -259,7 +261,7 @@ def ncs31x(conf_dict):
     wiringpi.softPwmCreate(_BLUE_LIGHT_PIN, 0, _MAX_POWER)
 
     if conf_dict and conf_dict['back_light']:
-        update_backlight(conf_dict['back_light'])
+        backlight(conf_dict['back_light'])
 
     # open the I2C bus to the NCS31X device
     _gpio = wiringpi.wiringPiI2CSetup(_I2C_Address)

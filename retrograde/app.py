@@ -11,7 +11,12 @@
 ## retrograde app
 ##
 ###########
-""" i'm a module docstring """
+
+""" 
+
+    App: retrograde entrty point
+
+"""
 
 import socket
 import time
@@ -21,7 +26,7 @@ from datetime import datetime
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 
-import retrograde
+import retro
 import gra_afch
 
 app = Flask(__name__, instance_relative_config=True)
@@ -30,7 +35,7 @@ app.config.from_mapping(
     # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
 )
 
-_retrograde_conf = retrograde.retrograde()
+_retrograde_conf = retro.retro()
 _gra_afch_conf = gra_afch.gra_afch()
 
 socketio = SocketIO(app)
@@ -62,4 +67,3 @@ def render():
 socketio.run(app, host='0.0.0.0')
 # send_message({'date': datetime.now().strftime('%B %d, %Y %H:%M:%S ')
 #              + time.localtime().tm_zone})
-

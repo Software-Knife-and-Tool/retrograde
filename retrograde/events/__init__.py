@@ -42,7 +42,6 @@ def _lock_target(target):
 def register(target, lock):
     global _target_locks
 
-    print((target, lock))
     _target_locks.append((target, lock))
 
 def make_event(target, type, id):
@@ -62,18 +61,12 @@ def find(target, lock):
 
     def_ = None
 
-    print('find: ' + target)
     lock.acquire()
-    print('unlocked: ' + target)
     with _queue_lock:
         def_ = in_queue()
         if def_:
-            print('found: removing ')
-            print(def_)
             _queue.remove(def_)
             if in_queue():
                 lock.release()
 
-    print('find: returns')
-    print(def_)
     return def_

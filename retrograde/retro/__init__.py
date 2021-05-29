@@ -24,34 +24,30 @@ import time
 
 from threading import Thread, Lock
 
-# this cleverness brought to you courtesy of having to sudo
-sys.path.append(r'/home/lumino/retro/retro/retro')
-from events import find, make_event, register
+from event import find_event, make_event, register, event
+from gra_afch import gra_afch
 
 VERSION = '0.0.1'
 
 _conf_dict = None
-_events = None
-_lock = None
+
+def exec_(op):
+    print('retro.exec_')
+    print(op)
 
 def retro():
     global _conf_dict, _events, _lock
 
     def event_proc():
         while True:
-            event = find('retro', _lock)
+            ev = find_event('retro')
+            exec_(ev['retro'])
 
-    with open('./retro/retrograde.conf', 'r') as file:
-        _conf_dict = json.load(file)
+    # with open('./retro/conf.json', 'r') as file:
+    #     _conf_dict = json.load(file)
+    
+    event()
+    register('retro', event_proc)
+    gra_afch()
 
-    _lock = Lock()
-    _lock.acquire()
-    
-    _events = Thread(target = event_proc)
-    _events.start()
-
-    register('retro', _lock)
-    
-    make_event('retro', 'hello', 0)
-    
     return _conf_dict

@@ -31,10 +31,9 @@ from ncs31x import RIGHT_REPR_START, RIGHT_BUFFER_START
 from ncs31x import LOWER_DOTS_MASK, UPPER_DOTS_MASK
 from ncs31x import display, blank, unblank, sync_time
 
-from events import find, make_event, register as events_register
-from execute import exec_op, exec_stack, exec_stack_lock, register as execute_register
+from event import find_event, make_event, send_event, register
 
-VERSION = '0.0.2'
+VERSION = '0.0.3'
 
 _conf_dict = None
 
@@ -143,7 +142,6 @@ def buttons():
 #
 #                    if ((wiringpi.millis() - debounce) > DEBOUNCE_DELAY):
 #
-#
 #                    [&pin, mutex]() . void:
 #                      if (mutex.try_lock()):
 #                        pin = MODE_BUTTON_PIN
@@ -164,22 +162,10 @@ def buttons():
 #                      mutex.unlock()
 #                    )
 
-def rotor_proc(rotor):
-    """
-        rotor_proc(rotor): rotor thread function
-             rotor: a list of rotor operations
-             returns: void
-
-    """
-    
-    global _dots
-
-    _dots = _conf_dict['dots']
-
-    exec_op(rotor)
-        
-def exec_(step):
+def exec_(op):
     global _dots, _tube_mask
+
+    step = op['exec']
 
     # animation
     if 'delay' in step:
@@ -200,19 +186,12 @@ def exec_(step):
         for i in range(8):
             _tube_mask[i] = 255 if mask_ & (2 ** i) else 0
     elif 'date-time' in step:
-        exec_stack_lock.acquire()
-        exec_stack.append(strftime(step['date-time'],
-                                   sync_time()))
-        exec_stack_lock.release()
+        display_string(strftime(step['date-time'],
+                                sync_time()))
     elif 'display' in step:
-        offset_ = step['display']
-        exec_stack_lock.acquire()
-        display_string(exec_stack[-offset_])
-        exec_stack_lock.release()
+        display_string(step['display'])
     else:
-        return None
-
-    return step
+        assert(False)
         
 def default_rotor():
     if 'rotors' in _conf_dict:
@@ -228,8 +207,14 @@ def default_events():
 
     return None
 
-def _run_rotor(rotor_def):
+def run_rotor(rotor_def):
     global _rotor
+
+    def rotor_proc(rotor):
+        global _dots
+
+        _dots = _conf_dict['dots']
+        send_event(rotor)
 
     if _rotor:
         _rotor._exit = True
@@ -238,32 +223,19 @@ def _run_rotor(rotor_def):
     _rotor = Thread(target = rotor_proc, args = (rotor_def, ))
     _rotor.start()
 
-
 def gra_afch():
-    global _rotor, _conf_dict, _lock
+    global _rotor, _conf_dict
 
     def event_proc():
         while True:
-            ev = find('gra_afch', _lock)
-            event = next((x for x in default_events() if ev['type'] in x), None)
-            if event:
-                exec_(event[ev['type']])
+            ev = find_event('gra-afch')
+            exec_(ev['gra-afch'])
 
-    with open('./gra_afch/gra-afch.conf', 'r') as file:
+    with open('./gra_afch/conf.json', 'r') as file:
         _conf_dict = json.load(file)
         ncs31x(_conf_dict)
 
-    _run_rotor(default_rotor())
+    register('gra-afch', event_proc)
 
-    _lock = Lock();
-    _lock.acquire();
-
-    execute_register(exec_)
-        
-    events_register('gra_afch', _lock)
-    make_event('gra_afch', 'hello', 0)
-
-    _events = Thread(target = event_proc)
-    _events.start()
-
+    run_rotor(default_rotor())
     return _conf_dict

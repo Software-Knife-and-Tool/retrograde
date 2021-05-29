@@ -2,20 +2,17 @@
 
 ------
 
-A _rotor_ is a list of rotor operations executed by a rotor thread. Rotors are coded in _json_, nominally defined in:
+A _rotor_ is a list of rotor operations executed by the rotor thread. Rotors are coded in _json_, nominally defined in:
 
 ```
 retrograde/gra_afch/gra_afch.conf
 ```
 
-Rotors are defined as either a _block_ or a _loop_. Active rotors are maintained on an implicit _rotor stack_ to allow nesting and event displays.
+Rotors are defined as either a _block_ or a _loop_.
 
-_Loops_ execute repeatedly until terminated with a _return_ operation.
+_loops_ execute forever.
 
-_Blocks_ stop executing at the end of the definition or otherwise terminated by a _return_ operation.
-
-Lamp contents are maintained and manipulated on the _display stack_. A per-lamp blanking bit mask allows a primitive form of animation.
-
+_blocks_ stop executing at the end of the definition.
 
 
 ###### _Operations Summary_
@@ -23,12 +20,11 @@ Lamp contents are maintained and manipulated on the _display stack_. A per-lamp 
 ------
 
 
-
-###### Control flow: _delay repeat block loop return return?_
+###### Control flow: _delay repeat block loop_
 
 ###### Display: _back blank dots mask_ 
 
-###### Display stack:  _display dup pop push inc shift date-time_
+###### Display stack:  _display date-time_
 
 
 
@@ -69,7 +65,7 @@ Bind rotor definition to STR.
 
 
 ```
-{ "delay": INT }
+{ "gra-afch": {"delay": INT } }
 ```
 
 Delay for INT milliseconds, reschedules the rotor thread.
@@ -78,7 +74,6 @@ Delay for INT milliseconds, reschedules the rotor thread.
 
 ```
 { "repeat": { "count": INT, "block": [...] } }
-{ "repeat": { "count": INT, "loop": [...] } }
 ```
 
 Execute rotor _count_ times.
@@ -90,16 +85,7 @@ Execute rotor _count_ times.
 { "loop": [...] }
 ```
 
-Push anonymous rotor definition on the _rotor stack_.
-
-
-
-```
-{ return: NULL }
-{ "return?": NULL }
-```
-
-Stop executing the current rotor and pop the _rotor stack_.
+Execute anonymous rotor definition.
 
 
 
@@ -164,58 +150,17 @@ Set the lamp blanking mask, range is _0..255_. Bits _0_ and _6_ are the indicato
 
 
 ```
-{ "display": INT }              
+{ "display": STR }              
 ```
 
-Light lamps from the INT _th_ element of the _display stack_.
-
-
-
-```
-{ "dup": NULL }
-```
-
-Duplicate the top of _display stack._
-
-
-
-```
-{ "pop": INT }                     
-```
-
-Pop the _display stack_ INT times.
-
-
-
-```
-{ "push": STR }                    
-```
-
-Push string onto the _display stack_.
-
-
-
-```
-{ "inc": INT }
-```
-
-Increment the top of the _display stack_  by INT. Negative values decrement.
-
-
-
-```
-{ "shift": { dir="left"|"right", count: INT } }
-```
-
-Shift the top of the _display stack_ INT characters to the right or left. Added characters are spaces.
-
+Light lamps from STR.
 
 
 ```
 { "date-time": STR }                     
 ```
 
-Push formatted date/time onto the _display stack_. The format string is interpreted as if by _strftime_().
+Display formatted date/time. The format string is interpreted as if by _strftime_().
 
 
 
@@ -240,43 +185,39 @@ This is the default rotor definition, which runs on startup.
 
 6. blank the display for a brief period
 
-7. display the formatted time at one second intervals
+7. display the formatted time in a loop at one second intervals
 
    
 
 ```
-"rotors": {
-            "default": [
-                         { "back": [ 255, 32, 0 ] },
-                         { "dots": false },
-                         { "push": "000001" },
-                         { "display" : 0 },
-                         { "delay": 1000},
-                         { "mask": 0 },
-                         { "pop": 1 },
-                         { "delay": 1000},
-                         { "mask": 255 },    
-                         { "repeat": { "count": 3,
-                                       "block": [
-                                                  { "date-time": "%m%d%y" },
-                                                  { "display": 0 },
-                                                  { "pop": 1 },
-                                                  { "delay": 500 },
-                                                  { "blank": true },
-                                                  { "delay": 500 },
-                                                  { "blank": false }
-                                                ]}},
-                         { "blank": true },
-                         { "delay": 1000 },
-                         { "blank": false },
-                         { "loop": [
-                                      { "date-time": "%H%M%S" },
-                                      { "display": 0 },
-                                      { "pop": 1 },
-                                      { "delay": 1000 }
-                                    ]}
-                 ]
-          }
+    "rotors": {
+        "default":
+          { "event": { "exec": { "block": [
+              { "gra-afch": { "exec": { "back": [ 255, 32, 0 ] } } },
+              { "gra-afch": { "exec": { "dots": false } } },
+              { "gra-afch": { "exec": { "display": "000001" } } },
+              { "gra-afch": { "exec": { "delay": 1000 } } },
+              { "gra-afch": { "exec": { "mask": 0 } } },
+              { "gra-afch": { "exec": { "delay": 1000 } } },
+              { "gra-afch": { "exec": { "mask": 255 } } },    
+              { "event":    { "exec": { "repeat": { "count": 3,
+                                                    "block": [
+                                                        { "gra-afch": { "exec": { "date-time": "%m%d%y" } } },
+                                                        { "gra-afch": { "exec": { "delay": 500 } } },
+                                                        { "gra-afch": { "exec": { "blank": true } } },
+                                                        { "gra-afch": { "exec": { "delay": 500 } } },
+                                                        { "gra-afch": { "exec": { "blank": false } } }
+                                                    ]}}}},
+              { "gra-afch": { "exec": { "blank": true } } },
+              { "gra-afch": { "exec": { "delay": 1000 } } },
+              { "gra-afch": { "exec": { "blank": false } } },
+              { "event": { "exec": { "loop": [
+                  { "gra-afch": { "exec": { "date-time": "%H%M%S" } } },
+                  { "gra-afch": { "exec": { "delay": 1000 } } }
+              ]}}}
+          ]}}}
+    }
+
 ```
 
 

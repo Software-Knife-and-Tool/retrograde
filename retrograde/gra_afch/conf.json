@@ -1,0 +1,36 @@
+{
+    "12hour": true,
+    "back_light": [0, 0, 0],
+    "dots": true,
+    "ntp": true,
+    "events": [
+        { "hello": { "event": { "exec": { "debug": "debug - hello" } } } }
+    ],
+    "rotors": {
+        "default":
+          { "event": { "exec": { "block": [
+              { "gra-afch": { "exec": { "back": [ 255, 32, 0 ] } } },
+              { "gra-afch": { "exec": { "dots": false } } },
+              { "gra-afch": { "exec": { "display": "000001" } } },
+              { "gra-afch": { "exec": { "delay": 1000 } } },
+              { "gra-afch": { "exec": { "mask": 0 } } },
+              { "gra-afch": { "exec": { "delay": 1000 } } },
+              { "gra-afch": { "exec": { "mask": 255 } } },    
+              { "event":    { "exec": { "repeat": { "count": 3,
+                                                    "block": [
+                                                        { "gra-afch": { "exec": { "date-time": "%m%d%y" } } },
+                                                        { "gra-afch": { "exec": { "delay": 500 } } },
+                                                        { "gra-afch": { "exec": { "blank": true } } },
+                                                        { "gra-afch": { "exec": { "delay": 500 } } },
+                                                        { "gra-afch": { "exec": { "blank": false } } }
+                                                    ]}}}},
+              { "gra-afch": { "exec": { "blank": true } } },
+              { "gra-afch": { "exec": { "delay": 1000 } } },
+              { "gra-afch": { "exec": { "blank": false } } },
+              { "event": { "exec": { "loop": [
+                  { "gra-afch": { "exec": { "date-time": "%H%M%S" } } },
+                  { "gra-afch": { "exec": { "delay": 1000 } } }
+              ]}}}
+          ]}}}
+    }
+}

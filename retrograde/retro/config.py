@@ -18,19 +18,15 @@
 
 """
 
-import json
 import sys
+from bluedot import BlueDot
 
 sys.path.append(r'/home/lumino/retrograde/retrograde/retro')
 import events
 
-from bluedot import BlueDot
-
 VERSION = '0.0.1'
-
-_conf_dict = None
 
 def bluetooth():
     bd = BlueDot()
     bd.wait_for_press()
-    print("You pressed the blue dot!")
+    print('You pressed the blue dot!')

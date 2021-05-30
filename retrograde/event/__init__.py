@@ -12,6 +12,12 @@
 ##
 ##########
 
+"""
+
+    module docstring
+
+"""
+
 import json
 import sys
 from threading import Thread, Lock
@@ -48,12 +54,12 @@ _modules = None
 
 def exec_(op):
     step = op['exec']
-        
+
     if 'repeat' in step:
         def_ = step['repeat']
         for _ in range(def_['count']):
             for op_ in def_['block']:
-                send_event(op_)            
+                send_event(op_)
     elif 'loop' in step:
         while True:
             for op_ in step['loop']:
@@ -62,7 +68,7 @@ def exec_(op):
         for op_ in step['block']:
             send_event(op_)
     else:
-        assert(False)
+        assert False
 
 def exec_lock():
     pass
@@ -72,50 +78,51 @@ def _lock_module(module):
 
     _modules_lock.acquire()
     for lock_desc in _modules:
-        module_, lock, _ = lock_desc
+        module_, lock_, _ = lock_desc
         if module == module_:
             _modules_lock.release()
-            return lock
+            return lock_
 
-    print("-- _lock_modules failure")
+    print('-- _lock_modules failure')
     print(_modules)
     print('-- for module')
     print(module)
-    
-    assert(False)
+
+    assert False
     return None
-    
+
 def register(module, fn):
     global _modules, _modules_lock
 
     _modules_lock.acquire()
-    
-    lock = Lock();
-    lock.acquire();
-    
+
+    lock = Lock()
+    lock.acquire()
+
     thread = Thread(target = fn)
 
     _modules.append((module, lock, thread))
     _modules_lock.release()
 
     thread.start()
-        
-def send_event(event):
+
+def send_event(ev):
     global _queue, _queue_lock
 
     with _queue_lock:
-        _queue.append(event)
-        module = list(event)[0]
+        _queue.append(ev)
+        module = list(ev)[0]
         lock = _lock_module(module)
+        # context manager here
         if lock.locked():
             lock.release()
-        
-def make_event(module, type, arg):
+
+def make_event(module, type_, arg):
     global _queue
 
     fmt = '{{ "{}": {{ "{}": "{}" }} }}'
 
-    send_event(json.loads(fmt.format(module, type, arg)))
+    send_event(json.loads(fmt.format(module, type_, arg)))
 
 def find_event(module):
     global _queue, _queue_lock
@@ -144,7 +151,9 @@ def event():
     def event_proc():
         while True:
             ev = find_event('event')
-            # event = next((x for x in default_events() if ev['type'] in x), None)
+            # event =
+            #  next((x for x in default_events()
+            #  if ev['type'] in x), None)
             exec_(ev['event'])
 
     # with open('./event/conf.json', 'r') as file:
@@ -156,4 +165,4 @@ def event():
     _modules_lock = Lock()
     _modules = []
 
-    register('event', event_proc)    
+    register('event', event_proc)

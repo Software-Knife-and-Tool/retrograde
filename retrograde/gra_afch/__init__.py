@@ -12,7 +12,7 @@
 ##
 ###########
 
-""" 
+"""
 
     Look at me, I'm a module docstring.
 
@@ -21,7 +21,9 @@
 import json
 import sys
 import time
+import wiringpi
 
+from time import localtime, strftime
 from threading import Thread, Lock
 
 # this cleverness brought to you courtesy of having to sudo
@@ -30,6 +32,7 @@ from ncs31x import LEFT_REPR_START, LEFT_BUFFER_START
 from ncs31x import RIGHT_REPR_START, RIGHT_BUFFER_START
 from ncs31x import LOWER_DOTS_MASK, UPPER_DOTS_MASK
 from ncs31x import display, blank, unblank, sync_time
+from ncs31x import backlight, ncs31x, init_pin as ncs31x_init_pin
 
 from event import find_event, make_event, send_event, register
 
@@ -40,15 +43,6 @@ _conf_dict = None
 _rotor = None
 _events = None
 _lock = None
-
-import wiringpi
-import ncs31x
-import threading
-
-from time import localtime, strftime
-
-sys.path.append(r'/home/retrograde/retrograde/retrograde/gra_afch')
-from ncs31x import blank, ncs31x, backlight
 
 _tube_map = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
 _tube_mask = [255 for _ in range(8)]
@@ -133,9 +127,9 @@ def display_string(digits):
 
 def buttons():
     # auto pin = _MODE_BUTTON_PIN
-    ncs31x.init_pin(ncs31x.UP_BUTTON_PIN)
-    ncs31x.init_pin(ncs31x.DOWN_BUTTON_PIN)
-    ncs31x.init_pin(ncs31x.MODE_BUTTON_PIN)
+    ncs31x_init_pin(ncs31x.UP_BUTTON_PIN)
+    ncs31x_init_pin(ncs31x.DOWN_BUTTON_PIN)
+    ncs31x_init_pin(ncs31x.MODE_BUTTON_PIN)
 
 #    wiringpi.wiringPiISR(_MODE_BUTTON_PIN, _INT_EDGE_RISING,
 #                    static unsigned long debounce = 0
@@ -169,7 +163,7 @@ def exec_(op):
 
     # animation
     if 'delay' in step:
-        wiringpi.delay(int(step['delay']))    
+        wiringpi.delay(int(step['delay']))
     elif 'blank' in step:
         if step['blank']:
             blank()
@@ -191,8 +185,8 @@ def exec_(op):
     elif 'display' in step:
         display_string(step['display'])
     else:
-        assert(False)
-        
+        assert False
+
 def default_rotor():
     if 'rotors' in _conf_dict:
         rotors = _conf_dict['rotors']

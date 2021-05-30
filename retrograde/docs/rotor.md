@@ -62,10 +62,28 @@ Bind rotor definition to STR.
 
 ------
 
+Rotor operations are expressed as events. An _event_ is a JSON object structured as:
+
+```
+{ MODULE: { EVENT: ARG } }
+```
+
+where
+
+MODULE: "event", "retro", "gra-afch", "integration"
+
+EVENT:  "button", "timer", "alarm", "ui-control", "integration", "exec"
+
+ARG:    context-based object
+
+
+
+Rotor operations are a special case of a general event, their EVENT type is "exec". Control flow operations are managed by the _event_ module, NCS31X operations are managed by the "gra-afch"' module, and UI and system operations are managed by the "retro" module.
+
 
 
 ```
-{ "gra-afch": {"delay": INT } }
+{ "gra-afch": {"exec": { "delay": INT } } }
 ```
 
 Delay for INT milliseconds, reschedules the rotor thread.
@@ -73,19 +91,19 @@ Delay for INT milliseconds, reschedules the rotor thread.
 
 
 ```
-{ "repeat": { "count": INT, "block": [...] } }
+{ "event": { "exec": { repeat": { "count": INT, "block": [...] } } }
 ```
 
-Execute rotor _count_ times.
+Execute operation block _count_ times.
 
 
 
 ```
-{ "block": [...] } 
-{ "loop": [...] }
+{ "event": { "exec": { "block": [...] } } }
+{ "event": { "exec": { "loop": [...] } } }
 ```
 
-Execute anonymous rotor definition.
+Execute anonymous block or loop.
 
 
 
@@ -93,19 +111,21 @@ Execute anonymous rotor definition.
 
 ------
 
-
-
-```
-{ "back": [R, G, B] }
-{ "back": STR }
-```
-
-Assign the back light color from an RGB triple or hex string. Color values are in the range 0..255.
+Display operations are implemented by the _gra-afch_ module.
 
 
 
 ```
-{ "blank": BOOL }
+{ "gra-afch": { "exec": { "back": [R, G, B] } } }
+{ "gra-afch": { "exec": { "back": STR } } }
+```
+
+Assign the back light color from an RGB triple or hex string. Color values are in INTs in the range _[0..255]_.
+
+
+
+```
+{ "gra-afch": { "exec": { "blank": BOOL } } }
 ```
 
  Power down the entire display. Individual lamps may be blanked with the _mask_ primitive.
@@ -113,7 +133,7 @@ Assign the back light color from an RGB triple or hex string. Color values are i
 
 
 ```
-{ "dots": BOOL }        
+{ "gra-afch": { "exec": { "dots": BOOL } } }
 ```
 
 The display has a pair of indicator lamps, located between tubes 2 and 3 and between 4 and 5. These are enabled/disabled by the argument.
@@ -123,10 +143,10 @@ _add individual masks for left/right indicators_
 
 
 ```
-{ "mask": INT } 
+{ "gra-afch": { "exec": { "mask": INT } } }
 ```
 
-Set the lamp blanking mask, range is _0..255_. Bits _0_ and _6_ are the indicator lamp enables.
+Set the lamp blanking mask, range is _[0..255]_. Bits _0_ and _6_ are the indicator lamp enables.
 
 | bit # | enable mask              | adjacency mask* (left, right) |
 | ----- | ------------------------ | ----------------------------- |
@@ -143,24 +163,20 @@ Set the lamp blanking mask, range is _0..255_. Bits _0_ and _6_ are the indicato
 
 
 
-###### _Display Stack operations_:
+```
+{ "gra-afch": { "exec": { "display": STR } } }
+```
 
-------
+Light lamps from STR. STR is a decimal numeric string of six digits.
+
 
 
 
 ```
-{ "display": STR }              
+{ "gra-afch": { "exec": { "date-time": STR } } }                 
 ```
 
-Light lamps from STR.
-
-
-```
-{ "date-time": STR }                     
-```
-
-Display formatted date/time. The format string is interpreted as if by _strftime_().
+Display formatted date/time. The format STR is interpreted as if by _strftime_().
 
 
 
@@ -190,6 +206,7 @@ This is the default rotor definition, which runs on startup.
    
 
 ```
+
     "rotors": {
         "default":
           { "event": { "exec": { "block": [
@@ -200,14 +217,15 @@ This is the default rotor definition, which runs on startup.
               { "gra-afch": { "exec": { "mask": 0 } } },
               { "gra-afch": { "exec": { "delay": 1000 } } },
               { "gra-afch": { "exec": { "mask": 255 } } },    
-              { "event":    { "exec": { "repeat": { "count": 3,
-                                                    "block": [
-                                                        { "gra-afch": { "exec": { "date-time": "%m%d%y" } } },
-                                                        { "gra-afch": { "exec": { "delay": 500 } } },
-                                                        { "gra-afch": { "exec": { "blank": true } } },
-                                                        { "gra-afch": { "exec": { "delay": 500 } } },
-                                                        { "gra-afch": { "exec": { "blank": false } } }
-                                                    ]}}}},
+              { "event":    { "exec": 
+              	               { "repeat": { "count": 3,
+                               	             "block": [
+                                 { "gra-afch": { "exec": { "date-time": "%m%d%y" } } },
+                                 { "gra-afch": { "exec": { "delay": 500 } } },
+                                 { "gra-afch": { "exec": { "blank": true } } },
+                                 { "gra-afch": { "exec": { "delay": 500 } } },
+                                 { "gra-afch": { "exec": { "blank": false } } }
+                                                      ]}}}},
               { "gra-afch": { "exec": { "blank": true } } },
               { "gra-afch": { "exec": { "delay": 1000 } } },
               { "gra-afch": { "exec": { "blank": false } } },

@@ -19,7 +19,7 @@
 """
 
 import wiringpi
-# from time import time, localtime, struct_time, mktime
+from time import struct_time
 
 # GPIO constants
 _R5222_PIN = 22
@@ -86,7 +86,7 @@ def backlight(color):
 # think: consolidate? does this even work?
 #
 
-def write_rtc_time(tm):
+def write_rtc(tm):
     def _dec_to_bcd(val):
         return (int(val / 10) * 16) + (val % 10)
 
@@ -127,23 +127,17 @@ def write_rtc_time(tm):
                                   _dec_to_bcd(tm.tm_wday))
     wiringpi.wiringPiI2CWriteReg8(_gpio,
                                   _DAY_REGISTER,
-                                  _dec_to_bcd(tm.tm_day))
+                                  _dec_to_bcd(tm.tm_mday))
     wiringpi.wiringPiI2CWriteReg8(_gpio,
                                   _MONTH_REGISTER,
-                                  _dec_to_bcd(tm.tm_month))
+                                  _dec_to_bcd(tm.tm_mon))
     wiringpi.wiringPiI2CWriteReg8(_gpio,
                                   _YEAR_REGISTER,
                                   _dec_to_bcd(tm.tm_year))
     wiringpi.wiringPiI2CWrite(_gpio, _I2C_FLUSH)
 
 
-#
-# check the clock skew
-# if it's off by more than a little bit,
-# sync to the host's time
-#
-
-def sync_time():
+def read_rtc():
     def _bcd_to_dec(val):
         return ((val >> 4) * 10) + (val & 0xf)
 
@@ -174,7 +168,7 @@ def sync_time():
            1,
            -1)
 
-    return now
+    return struct_time(now)
 
 #
 # stuff the tubes

@@ -12,9 +12,36 @@
 ##
 ###########
 
-"""
+"""Manage GRA-AFCH NCS31X hardware
 
-    Look at me, I'm a module docstring.
+See module nsc31x for display/clock interface.
+
+Classes:
+
+Functions:
+
+    dump(object, file)
+    dumps(object) -> string
+    load(file) -> object
+    loads(string) -> object
+
+    buttons()
+    default_events()
+    default_rotor()
+    display_string(digits)
+    exec_(op)
+    gra_afch()
+    run_rotor(rotor_def)
+    update_backlight(color)
+
+Misc variables:
+
+    VERSION
+    _conf_dict
+    _dots
+    _lock
+    _rotor
+    _tube_mask
 
 """
 
@@ -28,7 +55,8 @@ from threading import Thread, Lock
 from ncs31x import LEFT_REPR_START, LEFT_BUFFER_START
 from ncs31x import RIGHT_REPR_START, RIGHT_BUFFER_START
 from ncs31x import LOWER_DOTS_MASK, UPPER_DOTS_MASK
-from ncs31x import display, blank, unblank, sync_time
+from ncs31x import display, blank, unblank
+from ncs31x import read_rtc, write_rtc
 from ncs31x import backlight, ncs31x, init_pin as ncs31x_init_pin
 
 from event import find_event, make_event, send_event, register
@@ -38,10 +66,8 @@ VERSION = '0.0.3'
 _conf_dict = None
 
 _rotor = None
-_events = None
 _lock = None
 
-_tube_map = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
 _tube_mask = [255 for _ in range(8)]
 
 _rotor = None
@@ -83,12 +109,14 @@ def update_backlight(color):
 
 def display_string(digits):
     def tubes_(str_, start):
+        tube_map_ = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
+
         def num_(ch):
             return 0 if ch == ' ' else int(ch)
 
-        bits = (_tube_map[num_(str_[start])]) << 20
-        bits |= (_tube_map[num_(str_[start - 1])]) << 10
-        bits |= (_tube_map[num_(str_[start - 2])])
+        bits = (tube_map_[num_(str_[start])]) << 20
+        bits |= (tube_map_[num_(str_[start - 1])]) << 10
+        bits |= (tube_map_[num_(str_[start - 2])])
 
         return bits
 
@@ -158,7 +186,6 @@ def exec_(op):
 
     step = op['exec']
 
-    # animation
     if 'delay' in step:
         wiringpi.delay(int(step['delay']))
     elif 'blank' in step:
@@ -177,10 +204,11 @@ def exec_(op):
         for i in range(8):
             _tube_mask[i] = 255 if mask_ & (2 ** i) else 0
     elif 'date-time' in step:
-        display_string(strftime(step['date-time'],
-                                sync_time()))
+        display_string(strftime(step['date-time'], read_rtc()))
     elif 'display' in step:
         display_string(step['display'])
+    elif 'sync' in step:
+        write_rtc(localtime())
     else:
         assert False
 

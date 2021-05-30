@@ -9,6 +9,7 @@
     "rotors": {
         "default":
           { "event": { "exec": { "block": [
+              { "gra-afch": { "exec": { "sync": null } } },
               { "gra-afch": { "exec": { "back": [ 255, 32, 0 ] } } },
               { "gra-afch": { "exec": { "dots": false } } },
               { "gra-afch": { "exec": { "display": "000001" } } },
@@ -29,7 +30,7 @@
               { "gra-afch": { "exec": { "blank": false } } },
               { "event": { "exec": { "loop": [
                   { "gra-afch": { "exec": { "date-time": "%H%M%S" } } },
-                  { "gra-afch": { "exec": { "delay": 1000 } } }
+                  { "gra-afch": { "exec": { "delay": 200 } } }
               ]}}}
           ]}}}
     }

@@ -12,9 +12,36 @@
 ##
 ##########
 
-"""
+"""Manage retrograde events
 
-    module docstring
+See module gra-afch for display events.
+See module retro for system events.
+
+Classes:
+
+Functions:
+
+    dump(object, file)
+    dumps(object) -> string
+    load(file) -> object
+    loads(string) -> object
+
+    _lock_module(module)
+    register(module, fn)
+    send_event(ev)
+    make_event(module, type_, arg)
+    find_event(module)
+    exec_(op)
+    event()
+
+Misc variables:
+
+    VERSION
+    _conf_dict
+    _modules
+    _modules_lock
+    _queue
+    _queue_lock
 
 """
 
@@ -52,36 +79,14 @@ _modules = None
 #
 ####
 
-def exec_(op):
-    step = op['exec']
-
-    if 'repeat' in step:
-        def_ = step['repeat']
-        for _ in range(def_['count']):
-            for op_ in def_['block']:
-                send_event(op_)
-    elif 'loop' in step:
-        while True:
-            for op_ in step['loop']:
-                send_event(op_)
-    elif 'block' in step:
-        for op_ in step['block']:
-            send_event(op_)
-    else:
-        assert False
-
-def exec_lock():
-    pass
-
 def _lock_module(module):
     global _modules
 
-    _modules_lock.acquire()
-    for lock_desc in _modules:
-        module_, lock_, _ = lock_desc
-        if module == module_:
-            _modules_lock.release()
-            return lock_
+    with _modules_lock:
+        for lock_desc in _modules:
+            module_, lock_, _ = lock_desc
+            if module == module_:
+                return lock_
 
     print('-- _lock_modules failure')
     print(_modules)
@@ -91,20 +96,17 @@ def _lock_module(module):
     assert False
     return None
 
-def register(module, fn):
+def register(module_, fn):
     global _modules, _modules_lock
 
-    _modules_lock.acquire()
+    # leave lock_ locked
+    with _modules_lock:
+        lock_ = Lock()
+        lock_.acquire()
+        thread_ = Thread(target = fn)
+        _modules.append((module_, lock_, thread_))
 
-    lock = Lock()
-    lock.acquire()
-
-    thread = Thread(target = fn)
-
-    _modules.append((module, lock, thread))
-    _modules_lock.release()
-
-    thread.start()
+        thread_.start()
 
 def send_event(ev):
     global _queue, _queue_lock
@@ -113,7 +115,7 @@ def send_event(ev):
         _queue.append(ev)
         module = list(ev)[0]
         lock = _lock_module(module)
-        # context manager here
+        # doesn't this need to be atomic?
         if lock.locked():
             lock.release()
 
@@ -143,6 +145,24 @@ def find_event(module):
                 lock.release()
 
     return def_
+
+def exec_(op):
+    step = op['exec']
+
+    if 'repeat' in step:
+        def_ = step['repeat']
+        for _ in range(def_['count']):
+            for op_ in def_['block']:
+                send_event(op_)
+    elif 'loop' in step:
+        while True:
+            for op_ in step['loop']:
+                send_event(op_)
+    elif 'block' in step:
+        for op_ in step['block']:
+            send_event(op_)
+    else:
+        assert False
 
 def event():
     global _queue_lock, _queue

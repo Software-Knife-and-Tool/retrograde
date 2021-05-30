@@ -19,15 +19,12 @@
 """
 
 import json
-import sys
 import time
 import wiringpi
 
 from time import localtime, strftime
 from threading import Thread, Lock
 
-# this cleverness brought to you courtesy of having to sudo
-sys.path.append(r'/home/lumino/retrograde/retrograde/gra_afch')
 from ncs31x import LEFT_REPR_START, LEFT_BUFFER_START
 from ncs31x import RIGHT_REPR_START, RIGHT_BUFFER_START
 from ncs31x import LOWER_DOTS_MASK, UPPER_DOTS_MASK

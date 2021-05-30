@@ -12,9 +12,9 @@
 ##
 ###########
 
-""" 
+"""
 
-    App: retrograde entrty point
+    App: retrograde entry point
 
 """
 
@@ -26,12 +26,13 @@ import json
 from datetime import datetime
 
 # this cleverness brought to you courtesy of having to sudo
-sys.path.append(r'/home/lumino/retrograde/retrograde/venv/lib/python3.7/site-packages')
+sys.path.append(
+    r'/home/lumino/retrograde/retrograde/venv/lib/python3.7/site-packages'
+)
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 
 import retro
-import gra_afch
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_mapping(
@@ -58,8 +59,8 @@ def send_message(obj):
 def render():
     return render_template('index.html',
                            host = socket.gethostname(),
-                           version = retrograde.VERSION,
-                           serial = '0001',
+                           version = retro.VERSION,
+                           serial = '0000001',
                            retrograde_conf = _retrograde_conf,
                            gra_afch_conf = _retrograde_conf,
                            skew = 0.0,

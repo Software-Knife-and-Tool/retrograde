@@ -36,7 +36,7 @@ def exec_(op):
     print(op)
 
 def retro():
-    global _conf_dict, _events, _lock
+    global _conf_dict
 
     def event_proc():
         while True:
@@ -45,7 +45,7 @@ def retro():
 
     # with open('./retro/conf.json', 'r') as file:
     #     _conf_dict = json.load(file)
-    
+
     event()
     register('retro', event_proc)
     gra_afch()

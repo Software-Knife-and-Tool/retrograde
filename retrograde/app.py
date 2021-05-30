@@ -20,15 +20,10 @@
 
 import socket
 import time
-import sys
 import json
 
 from datetime import datetime
 
-# this cleverness brought to you courtesy of having to sudo
-sys.path.append(
-    r'/home/lumino/retrograde/retrograde/venv/lib/python3.7/site-packages'
-)
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 

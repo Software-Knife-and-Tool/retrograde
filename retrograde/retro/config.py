@@ -18,11 +18,7 @@
 
 """
 
-import sys
 from bluedot import BlueDot
-
-sys.path.append(r'/home/lumino/retrograde/retrograde/retro')
-import events
 
 VERSION = '0.0.1'
 

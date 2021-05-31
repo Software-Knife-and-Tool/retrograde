@@ -8,9 +8,7 @@ A _rotor_ is a list of rotor operations executed by the rotor thread. Rotors are
 retrograde/gra_afch/gra_afch.conf
 ```
 
-Rotors are defined as either a _block_ or a _loop_.
-
-_loops_ execute forever.
+Rotors are defined as a _block_.
 
 _blocks_ stop executing at the end of the definition.
 
@@ -91,19 +89,19 @@ Delay for INT milliseconds, reschedules the rotor thread.
 
 
 ```
-{ "event": { "exec": { repeat": { "count": INT, "block": [...] } } }
+{ "event": { "exec": { repeat": { "count": INT|BOOL, "block": [...] } } }
 ```
 
-Execute operation block _count_ times.
+Execute operation block _count_ times. _count_ may be an int, or a bool. If _count_ is true, the block will be repeated forever, if false, never.
 
 
 
 ```
 { "event": { "exec": { "block": [...] } } }
-{ "event": { "exec": { "loop": [...] } } }
+
 ```
 
-Execute anonymous block or loop.
+Execute anonymous block.
 
 
 
@@ -201,15 +199,16 @@ This is the default rotor definition, which runs on startup.
 
 6. blank the display for a brief period
 
-7. display the formatted time in a loop at one second intervals
+7. display the formatted time in a loop at 200ms intervals
 
    
 
 ```
-
-    "rotors": {
+ 
+   "rotors": {
         "default":
           { "event": { "exec": { "block": [
+              { "gra-afch": { "exec": { "sync": null } } },
               { "gra-afch": { "exec": { "back": [ 255, 32, 0 ] } } },
               { "gra-afch": { "exec": { "dots": false } } },
               { "gra-afch": { "exec": { "display": "000001" } } },
@@ -217,23 +216,23 @@ This is the default rotor definition, which runs on startup.
               { "gra-afch": { "exec": { "mask": 0 } } },
               { "gra-afch": { "exec": { "delay": 1000 } } },
               { "gra-afch": { "exec": { "mask": 255 } } },    
-              { "event":    { "exec": 
-              	               { "repeat": { "count": 3,
-                               	             "block": [
-                                 { "gra-afch": { "exec": { "date-time": "%m%d%y" } } },
-                                 { "gra-afch": { "exec": { "delay": 500 } } },
-                                 { "gra-afch": { "exec": { "blank": true } } },
-                                 { "gra-afch": { "exec": { "delay": 500 } } },
-                                 { "gra-afch": { "exec": { "blank": false } } }
-                                                      ]}}}},
+              { "event":    { "exec": { "repeat": { "count": 3,
+                                                    "block": [
+                                                        { "gra-afch": { "exec": { "date-time": "%m%d%y" } } },
+                                                        { "gra-afch": { "exec": { "delay": 500 } } },
+                                                        { "gra-afch": { "exec": { "blank": true } } },
+                                                        { "gra-afch": { "exec": { "delay": 500 } } },
+                                                        { "gra-afch": { "exec": { "blank": false } } }
+                                                    ]}}}},
               { "gra-afch": { "exec": { "blank": true } } },
               { "gra-afch": { "exec": { "delay": 1000 } } },
               { "gra-afch": { "exec": { "blank": false } } },
-              { "event": { "exec": { "loop": [
-                  { "gra-afch": { "exec": { "date-time": "%H%M%S" } } },
-                  { "gra-afch": { "exec": { "delay": 1000 } } }
+              { "event":    { "exec": { "repeat": { "count": true,
+                                                    "block": [
+                                                        { "gra-afch": { "exec": { "date-time": "%H%M%S" } } },
+                                                        { "gra-afch": { "exec": { "delay": 200 } } }
+                                                    ]}}}}
               ]}}}
-          ]}}}
     }
 
 ```

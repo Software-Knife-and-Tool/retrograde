@@ -4,7 +4,12 @@
     "dots": true,
     "ntp": true,
     "events": [
-        { "hello": { "event": { "exec": { "debug": "debug - hello" } } } }
+        { "timer": { "event": { "exec": { "block": [
+                                             { "gra-afch": { "exec": { "delay": 500 } } },
+                                             { "gra-afch": { "exec": { "blank": true } } },
+                                             { "gra-afch": { "exec": { "delay": 500 } } },
+                                             { "gra-afch": { "exec": { "blank": false } } }
+                                          ]}}}}
     ],
     "rotors": {
         "default":

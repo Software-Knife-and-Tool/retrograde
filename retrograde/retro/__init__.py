@@ -22,9 +22,9 @@ import json
 import sys
 import time
 
-from threading import Thread, Lock
+# from threading import Thread, Lock
 
-from event import find_event, make_event, register, event
+from event import event, find_event, make_event, register_module
 from gra_afch import gra_afch
 
 VERSION = '0.0.1'
@@ -47,7 +47,7 @@ def retro():
     #     _conf_dict = json.load(file)
 
     event()
-    register('retro', event_proc)
     gra_afch()
 
+    register_module('retro', event_proc)
     return _conf_dict

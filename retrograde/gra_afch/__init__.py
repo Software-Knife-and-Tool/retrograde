@@ -26,7 +26,6 @@ Functions:
     loads(string) -> object
 
     buttons()
-    default_events()
     default_rotor()
     display_string(digits)
     exec_(op)
@@ -59,7 +58,7 @@ from ncs31x import display, blank, unblank
 from ncs31x import read_rtc, write_rtc
 from ncs31x import backlight, ncs31x, init_pin as ncs31x_init_pin
 
-from event import find_event, make_event, send_event, register
+from event import find_event, make_event, send_event, register_module
 
 VERSION = '0.0.3'
 
@@ -220,7 +219,12 @@ def default_rotor():
 
     return None
 
-def default_events():
+def _find_event(event):
+    for ev in _events():
+        if event['event'] == list(ev)[0]:
+            send_event(ev[event['event']])
+
+def _events():
     if 'events' in _conf_dict:
         return _conf_dict['events']
 
@@ -247,14 +251,21 @@ def gra_afch():
 
     def event_proc():
         while True:
-            ev = find_event('gra-afch')
-            exec_(ev['gra-afch'])
+            event_ = find_event('gra-afch')['gra-afch']
+            etype_ = list(event_)[0]
+            if etype_ == 'event':
+                _find_event(event_)
+            elif etype_ == 'exec':
+                exec_(event_)
+            else:
+                assert False
 
     with open('./gra_afch/conf.json', 'r') as file:
         _conf_dict = json.load(file)
         ncs31x(_conf_dict)
 
-    register('gra-afch', event_proc)
+    register_module('gra-afch', event_proc)
+    # make_event('gra-afch', 'event', 'timer')
 
     run_rotor(default_rotor())
     return _conf_dict

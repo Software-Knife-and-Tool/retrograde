@@ -26,13 +26,11 @@ Functions:
     load(file) -> object
     loads(string) -> object
 
-    _lock_module(module)
-    register(module, fn)
-    send_event(ev)
-    make_event(module, type_, arg)
-    find_event(module)
-    exec_(op)
     event()
+    find_event(module)
+    make_event(module, type_, arg)
+    register_module(module, fn)
+    send_event(ev)
 
 Misc variables:
 
@@ -91,10 +89,26 @@ def _lock_module(module):
     assert False
     return None
 
-def register(module_, fn):
+def register_module(module_, fn):
+    """register a module event thread
+
+       create a per-module event thread and lock
+       and bind them to module.
+
+       the module event thread waits on the lock
+       by calling find_event until somebody does
+       a send_event with their tag.
+
+       there shouldn't be any events already on
+       queue for a unregistered module, if we want
+       to allow that we can grovel through the
+       queue and set the lock state accordingly
+       like find_event.
+
+    """
+
     global _modules, _modules_lock
 
-    # leave lock_ locked
     with _modules_lock:
         lock_ = Lock()
         lock_.acquire()
@@ -103,25 +117,15 @@ def register(module_, fn):
 
         thread_.start()
 
-def send_event(ev):
-    global _queue, _queue_lock
-
-    with _queue_lock:
-        _queue.append(ev)
-        module = list(ev)[0]
-        lock = _lock_module(module)
-        # doesn't this need to be atomic?
-        if lock.locked():
-            lock.release()
-
-def make_event(module, type_, arg):
-    global _queue
-
-    fmt = '{{ "{}": {{ "{}": "{}" }} }}'
-
-    send_event(json.loads(fmt.format(module, type_, arg)))
-
 def find_event(module):
+    """find a module event
+
+       unless there are one or more events on
+       the queue for module, wait until
+       send_event releases the wait lock.
+
+    """
+
     global _queue, _queue_lock
 
     def in_queue():
@@ -141,7 +145,35 @@ def find_event(module):
 
     return def_
 
-def exec_(op):
+def send_event(ev):
+    """push an event on the event queue
+
+       release the module event lock if
+       it is already locked.
+
+       module locks are only changed
+       with the queue lock held, so
+       this is safe.
+
+    """
+
+    global _queue, _queue_lock
+
+    with _queue_lock:
+        _queue.append(ev)
+        module = list(ev)[0]
+        lock = _lock_module(module)
+        if lock.locked():
+            lock.release()
+
+def make_event(module, type_, arg):
+    global _queue
+
+    fmt = '{{ "{}": {{ "{}": "{}" }} }}'
+
+    send_event(json.loads(fmt.format(module, type_, arg)))
+
+def _exec(op):
     step = op['exec']
 
     if 'repeat' in step:
@@ -171,10 +203,7 @@ def event():
     def event_proc():
         while True:
             ev = find_event('event')
-            # event =
-            #  next((x for x in default_events()
-            #  if ev['type'] in x), None)
-            exec_(ev['event'])
+            _exec(ev['event'])
 
     # with open('./event/conf.json', 'r') as file:
     #    _conf_dict = json.load(file)
@@ -185,4 +214,4 @@ def event():
     _modules_lock = Lock()
     _modules = []
 
-    register('event', event_proc)
+    register_module('event', event_proc)

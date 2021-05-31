@@ -14,7 +14,7 @@
 
 """
 
-    App: retrograde entry point
+    App: retrograde entry point and webapp
 
 """
 
@@ -27,7 +27,7 @@ from datetime import datetime
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 
-import retro
+from retro import retro
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_mapping(
@@ -35,7 +35,7 @@ app.config.from_mapping(
     # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
 )
 
-_retrograde_conf = retro.retro()
+_retrograde_conf = retro()
 
 socketio = SocketIO(app)
 

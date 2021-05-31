@@ -83,34 +83,35 @@ def backlight(color):
 #
 
 #
-# think: consolidate? does this even work?
+# think: consolidate?
 #
 
 def write_rtc(tm):
+
+    # def _update_rtc_hour(tm):
+    #    wiringpi.wiringPiI2CWrite(_gpio, _I2C_FLUSH)
+    #    wiringpi.wiringPiI2CWriteReg8(_gpio,
+    #                                  _HOUR_REGISTER,
+    #                                  _dec_to_bcd(tm.tm_hour))
+    #    wiringpi.wiringPiI2CWrite(_gpio, _I2C_FLUSH)
+
+    # def _update_rtc_minute(tm):
+    #    wiringpi.wiringPiI2CWrite(_gpio, _I2C_FLUSH)
+    #    wiringpi.wiringPiI2CWriteReg8(_gpio,
+    #                                  _MINUTE_REGISTER,
+    #                                  _dec_to_bcd(tm.tm_min))
+    #    wiringpi.wiringPiI2CWriteReg8(_gpio,
+    #                                  _HOUR_REGISTER,
+    #                                  _dec_to_bcd(tm.tm_hour))
+    #    wiringpi.wiringPiI2CWrite(_gpio, _I2C_FLUSH)
+
+    # def _reset_rtc_second():
+    #    wiringpi.wiringPiI2CWrite(_gpio, _I2C_FLUSH)
+    #    wiringpi.wiringPiI2CWriteReg8(_gpio, _SECOND_REGISTER, 0)
+    #    wiringpi.wiringPiI2CWrite(_gpio, _I2C_FLUSH)
+
     def _dec_to_bcd(val):
         return (int(val / 10) * 16) + (val % 10)
-
-    def _update_rtc_hour(tm):
-        wiringpi.wiringPiI2CWrite(_gpio, _I2C_FLUSH)
-        wiringpi.wiringPiI2CWriteReg8(_gpio,
-                                      _HOUR_REGISTER,
-                                      _dec_to_bcd(tm.tm_hour))
-        wiringpi.wiringPiI2CWrite(_gpio, _I2C_FLUSH)
-
-    def _update_rtc_minute(tm):
-        wiringpi.wiringPiI2CWrite(_gpio, _I2C_FLUSH)
-        wiringpi.wiringPiI2CWriteReg8(_gpio,
-                                      _MINUTE_REGISTER,
-                                      _dec_to_bcd(tm.tm_min))
-        wiringpi.wiringPiI2CWriteReg8(_gpio,
-                                      _HOUR_REGISTER,
-                                      _dec_to_bcd(tm.tm_hour))
-        wiringpi.wiringPiI2CWrite(_gpio, _I2C_FLUSH)
-
-    def _reset_rtc_second():
-        wiringpi.wiringPiI2CWrite(_gpio, _I2C_FLUSH)
-        wiringpi.wiringPiI2CWriteReg8(_gpio, _SECOND_REGISTER, 0)
-        wiringpi.wiringPiI2CWrite(_gpio, _I2C_FLUSH)
 
     wiringpi.wiringPiI2CWrite(_gpio, _I2C_FLUSH)
     wiringpi.wiringPiI2CWriteReg8(_gpio,
@@ -136,7 +137,6 @@ def write_rtc(tm):
                                   _dec_to_bcd(tm.tm_year))
     wiringpi.wiringPiI2CWrite(_gpio, _I2C_FLUSH)
 
-
 def read_rtc():
     def _bcd_to_dec(val):
         return ((val >> 4) * 10) + (val & 0xf)
@@ -155,9 +155,9 @@ def read_rtc():
                                                     _YEAR_REGISTER))
                        + 1900,
            _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio,
-                                                    _MONTH_REGISTER)) + 1,
+                                                    _MONTH_REGISTER)),
            _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio,
-                                                    _DAY_REGISTER)) + 1,
+                                                    _DAY_REGISTER)),
            _hour12(),
            _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(_gpio,
                                                     _MINUTE_REGISTER)),

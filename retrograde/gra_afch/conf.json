@@ -28,10 +28,11 @@
               { "gra-afch": { "exec": { "blank": true } } },
               { "gra-afch": { "exec": { "delay": 1000 } } },
               { "gra-afch": { "exec": { "blank": false } } },
-              { "event": { "exec": { "loop": [
-                  { "gra-afch": { "exec": { "date-time": "%H%M%S" } } },
-                  { "gra-afch": { "exec": { "delay": 200 } } }
+              { "event":    { "exec": { "repeat": { "count": true,
+                                                    "block": [
+                                                        { "gra-afch": { "exec": { "date-time": "%H%M%S" } } },
+                                                        { "gra-afch": { "exec": { "delay": 200 } } }
+                                                    ]}}}}
               ]}}}
-          ]}}}
     }
 }

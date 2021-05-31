@@ -88,11 +88,6 @@ def _lock_module(module):
             if module == module_:
                 return lock_
 
-    print('-- _lock_modules failure')
-    print(_modules)
-    print('-- for module')
-    print(module)
-
     assert False
     return None
 
@@ -151,13 +146,18 @@ def exec_(op):
 
     if 'repeat' in step:
         def_ = step['repeat']
-        for _ in range(def_['count']):
-            for op_ in def_['block']:
-                send_event(op_)
-    elif 'loop' in step:
-        while True:
-            for op_ in step['loop']:
-                send_event(op_)
+        count_ = def_['count']
+
+        if isinstance(count_, bool):
+            while count_:
+                for op_ in def_['block']:
+                    send_event(op_)
+        elif isinstance(count_, int):
+            for _ in range(count_):
+                for op_ in def_['block']:
+                    send_event(op_)
+        else:
+            assert False
     elif 'block' in step:
         for op_ in step['block']:
             send_event(op_)

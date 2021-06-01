@@ -49,7 +49,7 @@ import time
 import wiringpi
 
 from time import localtime, strftime
-from threading import Thread, Lock
+from threading import Thread, Lock, Timer
 
 from ncs31x import LEFT_REPR_START, LEFT_BUFFER_START
 from ncs31x import RIGHT_REPR_START, RIGHT_BUFFER_START
@@ -67,6 +67,7 @@ _conf_dict = None
 _rotor = None
 _lock = None
 
+# isa constant
 _tube_mask = [255 for _ in range(8)]
 
 _rotor = None
@@ -208,6 +209,14 @@ def exec_(op):
         display_string(step['display'])
     elif 'sync' in step:
         write_rtc(localtime())
+    elif 'timer' in step:
+        # def _timeout():
+        #     print('timeout')
+        #     make_event('gra-afch', 'event', 'timer')
+        # print(step['timer'] / 1000)
+        Timer(step['timer'] / 1000,
+        #    _timeout).start()
+              lambda : make_event('gra-afch', 'event', 'timer')).start()
     else:
         assert False
 
@@ -222,6 +231,7 @@ def default_rotor():
 def _find_event(event):
     for ev in _events():
         if event['event'] == list(ev)[0]:
+            print(ev[event['event']])
             send_event(ev[event['event']])
 
 def _events():
@@ -247,25 +257,33 @@ def run_rotor(rotor_def):
     _rotor.start()
 
 def gra_afch():
+    """initialize the gra-afch module
+
+       register with the event module
+       read the config file
+       crank up the default rotor
+
+    """
+
     global _rotor, _conf_dict
 
-    def event_proc():
+    def _event_proc():
         while True:
             event_ = find_event('gra-afch')['gra-afch']
             etype_ = list(event_)[0]
             if etype_ == 'event':
-                _find_event(event_)
+                send_event(find_event(event_))
             elif etype_ == 'exec':
                 exec_(event_)
             else:
                 assert False
 
+    register_module('gra-afch', _event_proc)
+
     with open('./gra_afch/conf.json', 'r') as file:
         _conf_dict = json.load(file)
         ncs31x(_conf_dict)
 
-    register_module('gra-afch', event_proc)
-    # make_event('gra-afch', 'event', 'timer')
-
     run_rotor(default_rotor())
+
     return _conf_dict

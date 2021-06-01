@@ -159,10 +159,13 @@ def send_event(ev):
 
     global _queue, _queue_lock
 
+    module = list(ev)[0]
+    lock = _lock_module(module)
+
+    if _queue_lock.locked():
+        print('sleepytime')
     with _queue_lock:
         _queue.append(ev)
-        module = list(ev)[0]
-        lock = _lock_module(module)
         if lock.locked():
             lock.release()
 

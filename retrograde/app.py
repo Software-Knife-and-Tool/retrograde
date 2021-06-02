@@ -27,7 +27,7 @@ from datetime import datetime
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 
-from retro import retro
+from retro import Retro
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_mapping(
@@ -35,7 +35,7 @@ app.config.from_mapping(
     # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
 )
 
-_retrograde_conf = retro()
+_retro = Retro()
 
 socketio = SocketIO(app)
 
@@ -54,10 +54,10 @@ def send_message(obj):
 def render():
     return render_template('index.html',
                            host = socket.gethostname(),
-                           version = retro.VERSION,
+                           version = Retro.VERSION,
                            serial = '0000001',
-                           retrograde_conf = _retrograde_conf,
-                           gra_afch_conf = _retrograde_conf,
+                           retrograde_conf = _retro.config(),
+                           gra_afch_conf = _retro.config(),
                            skew = 0.0,
                            date = datetime.now().strftime('%B %d, %Y %H:%M:%S ')
                            + time.localtime().tm_zone,

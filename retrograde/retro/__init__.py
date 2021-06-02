@@ -12,9 +12,34 @@
 ##
 ###########
 
-"""
+"""Manage GRA-AFCH NCS31X hardware
 
-    look at me! I'm a docstring
+Classes:
+    Retro
+
+Functions:
+
+    dump(object, file)
+    dumps(object) -> string
+    load(file) -> object
+    loads(string) -> object
+
+    buttons()
+    default_rotor()
+    display_string(digits)
+    exec_(op)
+    gra_afch()
+    run_rotor(rotor_def)
+    update_backlight(color)
+
+Misc variables:
+
+    VERSION
+    _conf_dict
+    _dots
+    _lock
+    _rotor
+    _tube_mask
 
 """
 
@@ -24,31 +49,50 @@ import time
 
 # from threading import Thread, Lock
 
-from event import event, find_event, make_event, register_module
-from gra_afch import gra_afch
+from event import Event
+from gra_afch import GraAfch
 
-VERSION = '0.0.1'
+class Retro:
+    """run the rotor thread
 
-_conf_dict = None
 
-def exec_(op):
-    print('retro.exec_')
-    print(op)
+    """
 
-def retro():
-    global _conf_dict
+    VERSION = '0.0.1'
 
-    def event_proc():
-        while True:
-            ev = find_event('retro')
-            exec_(ev['retro'])
+    _conf_dict = None
+    _gra_afch = None
+    event = None
 
-    # with open('./retro/conf.json', 'r') as file:
-    #     _conf_dict = json.load(file)
+    def config(self):
+        """run the rotor thread
 
-    event()
-    gra_afch()
 
-    register_module('retro', event_proc)
+        """
 
-    return _conf_dict
+        return self._conf_dict
+
+    def exec_(self, op):
+        """run the rotor thread
+
+
+        """
+
+        print('retro.exec_')
+        print(op)
+
+    def __init__(self):
+
+        self.event = Event()
+
+        def event_proc():
+            while True:
+                ev = self.event.find_event('retro')
+                self.exec_(ev['retro'])
+
+        # with open('./retro/conf.json', 'r') as file:
+        #     _conf_dict = json.load(file)
+
+        self._gra_afch = GraAfch(self.event)
+
+        self.event.register_module('retro', event_proc)

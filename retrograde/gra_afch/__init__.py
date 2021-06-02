@@ -14,9 +14,10 @@
 
 """Manage GRA-AFCH NCS31X hardware
 
-See module nsc31x for display/clock interface.
+See module ncs31x for display/clock interface.
 
 Classes:
+    GraAfch
 
 Functions:
 
@@ -51,27 +52,27 @@ import wiringpi
 from time import localtime, strftime
 from threading import Thread, Lock, Timer
 
-from ncs31x import LEFT_REPR_START, LEFT_BUFFER_START
-from ncs31x import RIGHT_REPR_START, RIGHT_BUFFER_START
-from ncs31x import LOWER_DOTS_MASK, UPPER_DOTS_MASK
-from ncs31x import display, blank, unblank
-from ncs31x import read_rtc, write_rtc
-from ncs31x import backlight, ncs31x, init_pin as ncs31x_init_pin
+from ncs31x import Ncs31x
 
-from event import find_event, make_event, send_event, register_module
+class GraAfch:
+    """run the rotor thread
 
-VERSION = '0.0.3'
 
-_conf_dict = None
+    """
 
-_rotor = None
-_lock = None
+    VERSION = '0.0.3'
 
-# isa constant
-_tube_mask = [255 for _ in range(8)]
+    _conf_dict = None
 
-_rotor = None
-_dots = None
+    _rotor = None
+    _lock = None
+
+    _tube_mask = [255 for _ in range(8)]
+
+    _rotor = None
+    _dots = None
+
+    _ncs31x = None
 
 # def string_to_color(str_):
 #    def ctoi_(nib):#
@@ -99,62 +100,77 @@ _dots = None
 #
 #    return [r, g, b];
 
-def update_backlight(color):
-    def scale_(nval):
-        return int(nval * (100 / 255))
+    def update_backlight(self, color):
+        """run the rotor thread
 
-    backlight([scale_(color[0]),
-               scale_(color[1]),
-               scale_(color[2])])
 
-def display_string(digits):
-    def tubes_(str_, start):
-        tube_map_ = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
+        """
 
-        def num_(ch):
-            return 0 if ch == ' ' else int(ch)
+        def scale_(nval):
+            return int(nval * (100 / 255))
 
-        bits = (tube_map_[num_(str_[start])]) << 20
-        bits |= (tube_map_[num_(str_[start - 1])]) << 10
-        bits |= (tube_map_[num_(str_[start - 2])])
+        self._ncs31x.backlight([scale_(color[0]),
+                                scale_(color[1]),
+                                scale_(color[2])])
 
-        return bits
+    def display_string(self, digits):
+        """run the rotor thread
 
-    def dots_(bits):
-        if _dots:
-            bits |= LOWER_DOTS_MASK
-            bits |= UPPER_DOTS_MASK
-        else:
-            bits &= ~LOWER_DOTS_MASK
-            bits &= ~UPPER_DOTS_MASK
 
-        return bits
+        """
 
-    def fmt_(nval, buffer, start, off):
-        buffer[start] = (nval >> 24 & 0xff) & _tube_mask[off]
-        buffer[start + 1] = ((nval >> 16) & 0xff) & _tube_mask[off + 1]
-        buffer[start + 2] = ((nval >> 8) & 0xff) & _tube_mask[off + 2]
-        buffer[start + 3] = (nval & 0xff) & _tube_mask[off + 3]
+        def tubes_(str_, start):
+            tube_map_ = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
 
-        return buffer
+            def num_(ch):
+                return 0 if ch == ' ' else int(ch)
 
-    buffer = [0 for _ in range(8)]
+            bits = (tube_map_[num_(str_[start])]) << 20
+            bits |= (tube_map_[num_(str_[start - 1])]) << 10
+            bits |= (tube_map_[num_(str_[start - 2])])
 
-    left = tubes_(digits, LEFT_REPR_START)
-    left = dots_(left)
-    fmt_(left, buffer, LEFT_BUFFER_START, 0)
+            return bits
 
-    right = tubes_(digits, RIGHT_REPR_START)
-    right = dots_(right)
-    fmt_(right, buffer, RIGHT_BUFFER_START, 4)
+        def dots_(bits):
+            if self._dots:
+                bits |= Ncs31x.LOWER_DOTS_MASK
+                bits |= Ncs31x.UPPER_DOTS_MASK
+            else:
+                bits &= ~Ncs31x.LOWER_DOTS_MASK
+                bits &= ~Ncs31x.UPPER_DOTS_MASK
 
-    display(buffer)
+            return bits
 
-def buttons():
-    # auto pin = _MODE_BUTTON_PIN
-    ncs31x_init_pin(ncs31x.UP_BUTTON_PIN)
-    ncs31x_init_pin(ncs31x.DOWN_BUTTON_PIN)
-    ncs31x_init_pin(ncs31x.MODE_BUTTON_PIN)
+        def fmt_(nval, buffer, start, off):
+            buffer[start] = (nval >> 24 & 0xff) & self._tube_mask[off]
+            buffer[start + 1] = ((nval >> 16) & 0xff) & self._tube_mask[off + 1]
+            buffer[start + 2] = ((nval >> 8) & 0xff) & self._tube_mask[off + 2]
+            buffer[start + 3] = (nval & 0xff) & self._tube_mask[off + 3]
+
+            return buffer
+
+        buffer = [0 for _ in range(8)]
+
+        left = tubes_(digits, Ncs31x.LEFT_REPR_START)
+        left = dots_(left)
+        fmt_(left, buffer, Ncs31x.LEFT_BUFFER_START, 0)
+
+        right = tubes_(digits, Ncs31x.RIGHT_REPR_START)
+        right = dots_(right)
+        fmt_(right, buffer, Ncs31x.RIGHT_BUFFER_START, 4)
+
+        self._ncs31x.display(buffer)
+
+    def buttons(self):
+        """run the rotor thread
+
+
+        """
+
+        # auto pin = _MODE_BUTTON_PIN
+        self._ncs31x.init_pin(self._ncs31x.UP_BUTTON_PIN)
+        self._ncs31x.init_pin(self._ncs31x.DOWN_BUTTON_PIN)
+        self._ncs31x.init_pin(self._ncs31x.MODE_BUTTON_PIN)
 
 #    wiringpi.wiringPiISR(_MODE_BUTTON_PIN, _INT_EDGE_RISING,
 #                    static unsigned long debounce = 0
@@ -181,109 +197,114 @@ def buttons():
 #                      mutex.unlock()
 #                    )
 
-def exec_(op):
-    global _dots, _tube_mask
+    def exec_(self, op):
+        """run the rotor thread
 
-    step = op['exec']
 
-    if 'delay' in step:
-        wiringpi.delay(int(step['delay']))
-    elif 'blank' in step:
-        if step['blank']:
-            blank()
-        else:
-            unblank()
-    elif 'back' in step:
-        update_backlight(step['back'])
-    elif 'dots' in step:
-        _dots = step['dots']
-    elif 'mask' in step:
-        # bits 0 and 6 are indicator lamps
-        # rightmost number lamp is bit 1
-        mask_ = step['mask']
-        for i in range(8):
-            _tube_mask[i] = 255 if mask_ & (2 ** i) else 0
-    elif 'date-time' in step:
-        display_string(strftime(step['date-time'], read_rtc()))
-    elif 'display' in step:
-        display_string(step['display'])
-    elif 'sync' in step:
-        write_rtc(localtime())
-    elif 'timer' in step:
-        # def _timeout():
-        #     print('timeout')
-        #     make_event('gra-afch', 'event', 'timer')
-        # print(step['timer'] / 1000)
-        Timer(step['timer'] / 1000,
-        #    _timeout).start()
-              lambda : make_event('gra-afch', 'event', 'timer')).start()
-    else:
-        assert False
+        """
 
-def default_rotor():
-    if 'rotors' in _conf_dict:
-        rotors = _conf_dict['rotors']
-        if 'default' in rotors:
-            return rotors['default']
+        step = op['exec']
 
-    return None
-
-def _find_event(event):
-    for ev in _events():
-        if event['event'] == list(ev)[0]:
-            print(ev[event['event']])
-            send_event(ev[event['event']])
-
-def _events():
-    if 'events' in _conf_dict:
-        return _conf_dict['events']
-
-    return None
-
-def run_rotor(rotor_def):
-    global _rotor
-
-    def rotor_proc(rotor):
-        global _dots
-
-        _dots = _conf_dict['dots']
-        send_event(rotor)
-
-    if _rotor:
-        _rotor._exit = True
-        _rotor.join()
-
-    _rotor = Thread(target = rotor_proc, args = (rotor_def, ))
-    _rotor.start()
-
-def gra_afch():
-    """initialize the gra-afch module
-
-       register with the event module
-       read the config file
-       crank up the default rotor
-
-    """
-
-    global _rotor, _conf_dict
-
-    def _event_proc():
-        while True:
-            event_ = find_event('gra-afch')['gra-afch']
-            etype_ = list(event_)[0]
-            if etype_ == 'event':
-                send_event(find_event(event_))
-            elif etype_ == 'exec':
-                exec_(event_)
+        if 'delay' in step:
+            wiringpi.delay(int(step['delay']))
+        elif 'blank' in step:
+            if step['blank']:
+                self._ncs31x.blank()
             else:
-                assert False
+                self._ncs31x.unblank()
+        elif 'back' in step:
+            self.update_backlight(step['back'])
+        elif 'dots' in step:
+            self._dots = step['dots']
+        elif 'mask' in step:
+            # bits 0 and 6 are indicator lamps
+            # rightmost number lamp is bit 1
+            mask_ = step['mask']
+            for i in range(8):
+                self._tube_mask[i] = 255 if mask_ & (2 ** i) else 0
+        elif 'date-time' in step:
+            self.display_string(
+                strftime(step['date-time'], self._ncs31x.read_rtc()))
+        elif 'display' in step:
+            self.display_string(step['display'])
+        elif 'sync' in step:
+            self._ncs31x.write_rtc(localtime())
+        elif 'timer' in step:
+            # def _timeout():
+            #     print('timeout')
+            #     make_event('gra-afch', 'event', 'timer')
+            # print(step['timer'] / 1000)
+            Timer(step['timer'] / 1000,
+                  #    _timeout).start()
+                  lambda : self._event.make_event('gra-afch',
+                                                  'event',
+                                                  'timer')).start()
+        else:
+            assert False
 
-    register_module('gra-afch', _event_proc)
+    def default_rotor(self):
+        if 'rotors' in self._conf_dict:
+            rotors = self._conf_dict['rotors']
+            if 'default' in rotors:
+                return rotors['default']
 
-    with open('./gra_afch/conf.json', 'r') as file:
-        _conf_dict = json.load(file)
-        ncs31x(_conf_dict)
+            return None
 
-    run_rotor(default_rotor())
+    def _find_event(self, event):
+        for ev in self._events():
+            if event['event'] == list(ev)[0]:
+                self._event.send_event(ev[event['event']])
 
-    return _conf_dict
+    def _events(self):
+        if 'events' in self._conf_dict:
+            return self._conf_dict['events']
+
+        return None
+
+    def run_rotor(self, rotor_def):
+        """run the rotor thread
+
+
+        """
+
+        def rotor_proc(rotor):
+            self._dots = self._conf_dict['dots']
+            self._event.send_event(rotor)
+
+        if self._rotor:
+            self._rotor._exit = True
+            self._rotor.join()
+
+        self._rotor = Thread(target = rotor_proc, args = (rotor_def, ))
+        self._rotor.start()
+
+    def __init__(self, event):
+        """initialize the gra-afch module
+
+        register with the event module
+        read the config file
+        crank up the default rotor
+
+        """
+
+        def _event_proc():
+            while True:
+                event_ = self._event.find_event('gra-afch')['gra-afch']
+                etype_ = list(event_)[0]
+                if etype_ == 'event':
+                    self._event.send_event(self._eventfind_event(event_))
+                elif etype_ == 'exec':
+                    self.exec_(event_)
+                else:
+                    assert False
+
+        self._event = event
+
+        self._event.register_module('gra-afch', _event_proc)
+
+        with open('./gra_afch/conf.json', 'r') as file:
+            self._conf_dict = json.load(file)
+
+        self._ncs31x = Ncs31x(self._conf_dict)
+
+        self.run_rotor(self.default_rotor())

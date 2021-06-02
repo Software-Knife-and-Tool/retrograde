@@ -14,10 +14,11 @@
 
 """Manage retrograde events
 
-See module gra-afch for display events.
+See module gra-afch for display/RTC events.
 See module retro for system events.
 
 Classes:
+    Event
 
 Functions:
 
@@ -48,8 +49,6 @@ import sys
 from threading import Thread, Lock
 from time import localtime, strftime
 
-VERSION = '0.0.3'
-
 ##########
 #
 # event format:
@@ -63,158 +62,170 @@ VERSION = '0.0.3'
 # sneak in a timestamp somehow?
 #
 
-_conf_dict = None
+class Event:
+    """the event class
 
-_queue = None
-_queue_lock = None
-
-_modules_lock = None
-_modules = None
-
-####
-#
-# external interfaces
-#
-####
-
-def _lock_module(module):
-    global _modules
-
-    with _modules_lock:
-        for lock_desc in _modules:
-            module_, lock_, _ = lock_desc
-            if module == module_:
-                return lock_
-
-    assert False
-    return None
-
-def register_module(module_, fn):
-    """register a module event thread
-
-       create a per-module event thread and lock
-       and bind them to module.
-
-       the module event thread waits on the lock
-       by calling find_event until somebody does
-       a send_event with their tag.
-
-       there shouldn't be any events already on
-       queue for a unregistered module, if we want
-       to allow that we can grovel through the
-       queue and set the lock state accordingly
-       like find_event.
 
     """
 
-    global _modules, _modules_lock
+    VERSION = '0.0.3'
 
-    with _modules_lock:
-        lock_ = Lock()
-        lock_.acquire()
-        thread_ = Thread(target = fn)
-        _modules.append((module_, lock_, thread_))
+    _conf_dict = None
 
-        thread_.start()
+    _queue = None
+    _queue_lock = None
 
-def find_event(module):
-    """find a module event
+    _modules_lock = None
+    _modules = None
 
-       unless there are one or more events on
-       the queue for module, wait until
-       send_event releases the wait lock.
+    def _lock_module(self, module):
 
-    """
+        with self._modules_lock:
+            for lock_desc in self._modules:
+                module_, lock_, _ = lock_desc
+                if module == module_:
+                    return lock_
 
-    global _queue, _queue_lock
+        assert False
+        return None
 
-    def in_queue():
-        return next((x for x in _queue if module in x), None)
+    def register_module(self, module_, fn):
+        """register a module event thread
 
-    def_ = None
+            create a per-module event thread and lock
+            and bind them to module.
 
-    lock = _lock_module(module)
-    lock.acquire()
+            the module event thread waits on the lock
+            by calling find_event until somebody does
+            a send_event with their tag.
 
-    with _queue_lock:
-        def_ = in_queue()
-        if def_:
-            _queue.remove(def_)
+            there shouldn't be any events already on
+            queue for a unregistered module, if we want
+            to allow that we can grovel through the
+            queue and set the lock state accordingly
+            like find_event.
+
+        """
+
+        with self._modules_lock:
+            lock_ = Lock()
+            lock_.acquire()
+            thread_ = Thread(target = fn)
+            self._modules.append((module_, lock_, thread_))
+
+            thread_.start()
+
+    def find_event(self, module):
+        """find a module event
+
+           unless there are one or more events on
+           the queue for module, wait until
+           send_event releases the wait lock.
+
+        """
+
+        def in_queue():
+            return next((x for x in self._queue if module in x), None)
+
+        def_ = None
+
+        lock = self._lock_module(module)
+        lock.acquire()
+
+        with self._queue_lock:
+            def_ = in_queue()
+            if def_:
+                self._queue.remove(def_)
             if in_queue() and lock.locked():
                 lock.release()
 
-    return def_
+        return def_
 
-def send_event(ev):
-    """push an event on the event queue
+    def send_event(self, ev):
+        """push an event on the event queue
 
-       release the module event lock if
-       it is already locked.
+            release the module event lock if
+            it is already locked.
 
-       module locks are only changed
-       with the queue lock held, so
-       this is safe.
+            module locks are only changed
+            with the queue lock held, so
+            this is safe.
 
-    """
+        """
 
-    global _queue, _queue_lock
+        module = list(ev)[0]
+        lock = self._lock_module(module)
 
-    module = list(ev)[0]
-    lock = _lock_module(module)
+        with self._queue_lock:
+            self._queue.append(ev)
+            if lock.locked():
+                lock.release()
 
-    if _queue_lock.locked():
-        print('sleepytime')
-    with _queue_lock:
-        _queue.append(ev)
-        if lock.locked():
-            lock.release()
+    def make_event(self, module, type_, arg):
+        """find a module event
 
-def make_event(module, type_, arg):
-    global _queue
+           unless there are one or more events on
+           the queue for module, wait until
+           send_event releases the wait lock.
 
-    fmt = '{{ "{}": {{ "{}": "{}" }} }}'
+        """
 
-    send_event(json.loads(fmt.format(module, type_, arg)))
+        fmt = '{{ "{}": {{ "{}": "{}" }} }}'
 
-def _exec(op):
-    step = op['exec']
+        self.send_event(json.loads(fmt.format(module, type_, arg)))
 
-    if 'repeat' in step:
-        def_ = step['repeat']
-        count_ = def_['count']
+    def exec_(self, op):
+        """find a module event
 
-        if isinstance(count_, bool):
-            while count_:
-                for op_ in def_['block']:
-                    send_event(op_)
-        elif isinstance(count_, int):
-            for _ in range(count_):
-                for op_ in def_['block']:
-                    send_event(op_)
+           unless there are one or more events on
+           the queue for module, wait until
+           send_event releases the wait lock.
+
+        """
+
+        step = op['exec']
+
+        if 'repeat' in step:
+            def_ = step['repeat']
+            count_ = def_['count']
+
+            if isinstance(count_, bool):
+                while count_:
+                    for op_ in def_['block']:
+                        self.send_event(op_)
+            elif isinstance(count_, int):
+                for _ in range(count_):
+                    for op_ in def_['block']:
+                        self.send_event(op_)
+            else:
+                assert False
+        elif 'block' in step:
+            for op_ in step['block']:
+                self.send_event(op_)
         else:
             assert False
-    elif 'block' in step:
-        for op_ in step['block']:
-            send_event(op_)
-    else:
-        assert False
 
-def event():
-    global _queue_lock, _queue
-    global _modules_lock, _modules
+    def __init__(self):
+        """find a module event
 
-    def event_proc():
-        while True:
-            ev = find_event('event')
-            _exec(ev['event'])
+           unless there are one or more events on
+           the queue for module, wait until
+           send_event releases the wait lock.
 
-    # with open('./event/conf.json', 'r') as file:
-    #    _conf_dict = json.load(file)
+        """
 
-    _queue_lock = Lock()
-    _queue = []
+        def event_proc():
+            while True:
+                ev = self.find_event('event')
+                self.exec_(ev['event'])
 
-    _modules_lock = Lock()
-    _modules = []
+        # with open('./event/conf.json', 'r') as file:
+        #    _conf_dict = json.load(file)
 
-    register_module('event', event_proc)
+        self._queue_lock = Lock()
+        self._queue = []
+
+        self._modules_lock = Lock()
+        self._modules = []
+
+        self.register_module('event', event_proc)

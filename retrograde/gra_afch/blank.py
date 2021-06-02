@@ -18,10 +18,9 @@
 
 """
 
-from ncs31x import blank, ncs31x
+from ncs31x import Ncs31x
 
 VERSION = '0.0.1'
 
 if __name__ == '__main__':
-    ncs31x(None)
-    blank()
+    Ncs31x(None).blank()

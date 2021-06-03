@@ -23,4 +23,4 @@ from ncs31x import Ncs31x
 VERSION = '0.0.1'
 
 if __name__ == '__main__':
-    Ncs31x(None).blank()
+    Ncs31x(None).blank(True)

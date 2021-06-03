@@ -66,13 +66,10 @@ class GraAfch:
 
     _rotor = None
     _lock = None
+    _dots = None
+    _ncs31x = None
 
     _tube_mask = [255 for _ in range(8)]
-
-    _rotor = None
-    _dots = None
-
-    _ncs31x = None
 
 # def string_to_color(str_):
 #    def ctoi_(nib):#
@@ -198,9 +195,7 @@ class GraAfch:
 #                    )
 
     def exec_(self, op):
-        """run the rotor thread
-
-
+        """gra-afch operations
         """
 
         step = op['exec']
@@ -208,10 +203,7 @@ class GraAfch:
         if 'delay' in step:
             wiringpi.delay(int(step['delay']))
         elif 'blank' in step:
-            if step['blank']:
-                self._ncs31x.blank()
-            else:
-                self._ncs31x.unblank()
+            self._ncs31x.blank(step['blank'])
         elif 'back' in step:
             self.update_backlight(step['back'])
         elif 'dots' in step:
@@ -230,15 +222,17 @@ class GraAfch:
         elif 'sync' in step:
             self._ncs31x.write_rtc(localtime())
         elif 'timer' in step:
-            # def _timeout():
-            #     print('timeout')
-            #     make_event('gra-afch', 'event', 'timer')
-            # print(step['timer'] / 1000)
-            Timer(step['timer'] / 1000,
-                  #    _timeout).start()
-                  lambda : self._event.make_event('gra-afch',
-                                                  'event',
-                                                  'timer')).start()
+            print('timer')
+            print(step)
+            def timer_():
+                print('ding')
+                self._event.make_event('gra-afch', 'event', 'timer')
+            Timer(step['timer'] / 1000, timer_).start()
+
+            # Timer(step['timer'] / 1000,
+            #      lambda : self._event.make_event('gra-afch',
+            #                                      'event',
+            #                                      'timer')).start()
         else:
             assert False
 
@@ -250,11 +244,6 @@ class GraAfch:
 
             return None
 
-    def _find_event(self, event):
-        for ev in self._events():
-            if event['event'] == list(ev)[0]:
-                self._event.send_event(ev[event['event']])
-
     def _events(self):
         if 'events' in self._conf_dict:
             return self._conf_dict['events']
@@ -263,8 +252,6 @@ class GraAfch:
 
     def run_rotor(self, rotor_def):
         """run the rotor thread
-
-
         """
 
         def rotor_proc(rotor):
@@ -281,30 +268,43 @@ class GraAfch:
     def __init__(self, event):
         """initialize the gra-afch module
 
-        register with the event module
-        read the config file
-        crank up the default rotor
-
+            register with the event module
+            read the config file
+            crank up the default rotor
         """
 
         def _event_proc():
+            """grab one of our events off the queue
+
+               if it's an exec, do it.
+
+               if it's an event, go look it up in our
+               event config and send whatever it maps
+               to back to the queue.
+            """
+
             while True:
                 event_ = self._event.find_event('gra-afch')['gra-afch']
                 etype_ = list(event_)[0]
                 if etype_ == 'event':
-                    self._event.send_event(self._eventfind_event(event_))
+                    print('ding')
+                    print(event_)
+                    for ev in self._events():
+                        if event_['event'] == list(ev)[0]:
+                            print('timer event')
+                            self._event.send_event(ev[event_['event']])
                 elif etype_ == 'exec':
                     self.exec_(event_)
                 else:
                     assert False
 
         self._event = event
-
         self._event.register_module('gra-afch', _event_proc)
 
         with open('./gra_afch/conf.json', 'r') as file:
             self._conf_dict = json.load(file)
 
+        # does ncs31x need the configuration dictionary?
         self._ncs31x = Ncs31x(self._conf_dict)
 
         self.run_rotor(self.default_rotor())

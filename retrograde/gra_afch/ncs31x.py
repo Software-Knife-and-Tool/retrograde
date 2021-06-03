@@ -22,9 +22,7 @@ import wiringpi
 from time import struct_time
 
 class Ncs31x:
-    """run the rotor thread
-
-
+    """NCS31X class
     """
 
     # GPIO constants
@@ -37,10 +35,6 @@ class Ncs31x:
     # NCS31X values
     _DEBOUNCE_DELAY = 150
     _TOTAL_DELAY = 17
-
-    UP_BUTTON_PIN = 1
-    DOWN_BUTTON_PIN = 4
-    MODE_BUTTON_PIN = 5
 
     _BUZZER_PIN = 0
 
@@ -57,6 +51,11 @@ class Ncs31x:
     _GREEN_LIGHT_PIN = 27
     _BLUE_LIGHT_PIN = 29
 
+    # externs
+    UP_BUTTON_PIN = 1
+    DOWN_BUTTON_PIN = 4
+    MODE_BUTTON_PIN = 5
+
     UPPER_DOTS_MASK = 0x80000000
     LOWER_DOTS_MASK = 0x40000000
 
@@ -65,48 +64,30 @@ class Ncs31x:
     RIGHT_REPR_START = 2
     RIGHT_BUFFER_START = 4
 
+    # class variables
     _ncshv5222 = None
     _gpio = None
     _conf_dict = None
 
-    #
-    # display controls
-    #
-
-    def blank(self):
-        """run the rotor thread
-
-
+    def blank(self, state):
+        """power off the display
         """
 
-        wiringpi.digitalWrite(self._LE_PIN, wiringpi.LOW)
-
-    def unblank(self):
-        """run the rotor thread
-
-
-        """
-
-        wiringpi.digitalWrite(self._LE_PIN, wiringpi.HIGH)
+        wiringpi.digitalWrite(self._LE_PIN,
+                              wiringpi.LOW if state else wiringpi.HIGH)
 
     def backlight(self, color):
-        """run the rotor thread
-
-
+        """change the backlight color
         """
 
         wiringpi.softPwmWrite(self._RED_LIGHT_PIN, color[0])
         wiringpi.softPwmWrite(self._GREEN_LIGHT_PIN, color[1])
         wiringpi.softPwmWrite(self._BLUE_LIGHT_PIN, color[2])
 
-    #
-    # RTC functions
-    #
-
     def write_rtc(self, tm):
-        """run the rotor thread
+        """write the RTC
 
-
+           from a time struct
         """
 
         def _dec_to_bcd(val):
@@ -137,9 +118,9 @@ class Ncs31x:
         wiringpi.wiringPiI2CWrite(self._gpio, self._I2C_FLUSH)
 
     def read_rtc(self):
-        """run the rotor thread
+        """read the RTC
 
-
+            return a struct_time()
         """
 
         def _bcd_to_dec(val):
@@ -175,14 +156,8 @@ class Ncs31x:
 
         return struct_time(now)
 
-    #
-    # stuff the tubes
-    #
-
     def display(self, tubes):
-        """run the rotor thread
-
-
+        """put the tube representation into the tubes
         """
 
         def rev_bits(nval):
@@ -224,23 +199,15 @@ class Ncs31x:
         wiringpi.digitalWrite(self._LE_PIN, wiringpi.HIGH)
 
     def init_pin(self, pin):
-        """run the rotor thread
-
-
+        """set a GPIO pin to input and pulled-up
         """
 
         wiringpi.pinMode(pin, wiringpi.INPUT)
         wiringpi.pullUpDnControl(pin, wiringpi.PUD_UP)
 
-    #
-    # events
-    #
-
-    # think: this is ugly
+    # think: boy howdy, this is ugly
     def func_mode(self):
         """run the rotor thread
-
-
         """
 
         if (wiringpi.millis() - self.func_mode.debounce) > self._DEBOUNCE_DELAY:
@@ -250,8 +217,6 @@ class Ncs31x:
 
     def func_up(self):
         """run the rotor thread
-
-
         """
         if (wiringpi.millis() - self.func_up.debounce) > self._DEBOUNCE_DELAY:
             print('UP button was pressed.')
@@ -260,8 +225,6 @@ class Ncs31x:
 
     def func_down(self):
         """run the rotor thread
-
-
         """
 
         if (wiringpi.millis() - self.func_down.debounce) > self._DEBOUNCE_DELAY:
@@ -270,9 +233,7 @@ class Ncs31x:
     func_down.debounce = 0
 
     def __init__(self, conf_dict):
-        """run the rotor thread
-
-
+        """initialize an ncs31x object
         """
 
         self._conf_dict = conf_dict

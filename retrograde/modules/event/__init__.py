@@ -30,7 +30,7 @@ Functions:
     event()
     find_event(module)
     make_event(module, type_, arg)
-    register_module(module, fn)
+    register(module, fn)
     send_event(ev)
 
 Misc variables:
@@ -88,7 +88,7 @@ class Event:
         assert False
         return None
 
-    def register_module(self, module_, fn):
+    def register(self, module_, fn):
         """register a module event thread
 
             create a per-module event thread and lock
@@ -227,4 +227,4 @@ class Event:
         self._modules_lock = Lock()
         self._modules = []
 
-        self.register_module('event', event_proc)
+        self.register('event', event_proc)

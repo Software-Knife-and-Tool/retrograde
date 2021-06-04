@@ -82,4 +82,4 @@ class Retro:
             self._conf_dict = json.load(file)
 
         self._event = module_.event
-        self._event.register_module('retro', event_proc)
+        self._event.register('retro', event_proc)

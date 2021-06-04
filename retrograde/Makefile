@@ -3,16 +3,19 @@
 #
 .PHONY: lint venv
 SRCS = \
-	app.py     	        \
-	event/__init__.py	\
-	gra_afch/blank.py	\
-	gra_afch/__init__.py	\
-	gra_afch/ncs31x.py	\
-	retro/config.py		\
-	retro/__init__.py
+	app.py     	        	\
+	module/__init__.py		\
+	module/config.py		\
+	modules/event/__init__.py	\
+	modules/gra_afch/__init__.py	\
+	modules/gra_afch/blank.py	\
+	modules/gra_afch/ncs31x.py	\
+	modules/retro/__init__.py
 
-PYBIN = /home/putnamjm/retrograde/retrograde/venv/bin
-PYPATH = /home/putnamjm/retrograde/retrograde/gra_afch:/home/putnamjm/retrograde/retrograde/retro:/home/putnamjm/retrograde/retrograde/venv/lib/python3.7/site-packages
+BASE = /home/putnamjm/retrograde/retrograde
+
+BIN = $(BASE)/venv/bin
+PACKAGES = $(BASE):$(BASE)/modules:$(BASE)/venv/lib/python3.7/site-packages
 
 venv:
 	@virtualenv venv
@@ -22,21 +25,22 @@ install:
 	@pip3 install wiringpi flask uWSGI flask-socketio eventlet pylint pybluez bluedot dbus-python
 
 blank:
-	@sudo env "PATH=$(PYBIN):$(PATH)" "PYTHONPATH=$(PYPATH)" python3 gra_afch/blank.py
+	@sudo env "PATH=$(BIN)" "PYTHONPATH=$(PACKAGES)" python3 modules/gra_afch/blank.py
 
 run:
-	@sudo env "PATH=$(PYBIN):$(PATH)" "PYTHONPATH=$(PYPATH)" python3 app.py
+	@sudo env "PATH=$(BIN)" "PYTHONPATH=$(PACKAGES)" python3 app.py
 
 profile:
-	@sudo env "PATH=$(PYBIN):$(PATH)" "PYTHONPATH=$(PYPATH)" python3 -m cProfile -s cumtime gra_afch/blank.py
+	@sudo env "PATH=$(BIN)" "PYTHONPATH=$(PACKAGES)" python3 -m cProfile -s cumtime gra_afch/blank.py
 
 uwsgi:
 	@uwsgi --http :5000 --gevent 1000 --http-websockets --master --wsgi-file app.py --callable app
 
 lint:
+
 	@for i in $(SRCS); do		\
 	    echo -n $$i ": ";		\
-	    pylint $$i | egrep -v "^-";	\
+	    env "PATH=$(BIN)" "PYTHONPATH=$(PACKAGES)" pylint $$i | egrep -v "^-";	\
 	done
 
 lint-summary:

@@ -12,10 +12,7 @@
 ##
 ###########
 
-"""
-
-    docstring
-
+"""blank the display
 """
 
 from ncs31x import Ncs31x

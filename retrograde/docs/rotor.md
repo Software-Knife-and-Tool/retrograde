@@ -205,7 +205,7 @@ This is the default rotor definition, which runs on startup.
 
 ```
  
-   "rotors": {
+   "rotors": [
         "default":
           { "event": { "exec": { "block": [
               { "gra-afch": { "exec": { "sync": null } } },
@@ -233,7 +233,7 @@ This is the default rotor definition, which runs on startup.
                                                         { "gra-afch": { "exec": { "delay": 200 } } }
                                                     ]}}}}
               ]}}}
-    }
+    ]
 
 ```
 

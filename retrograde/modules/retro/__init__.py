@@ -47,52 +47,39 @@ import json
 import sys
 import time
 
-# from threading import Thread, Lock
-
-from event import Event
-from gra_afch import GraAfch
+import module
 
 class Retro:
-    """run the rotor thread
-
-
+    """the retro module
     """
 
     VERSION = '0.0.1'
 
     _conf_dict = None
-    _gra_afch = None
-    event = None
+    _event = None
 
     def config(self):
-        """run the rotor thread
-
-
+        """retro config accessor
         """
 
         return self._conf_dict
 
     def exec_(self, op):
-        """run the rotor thread
-
-
+        """retor execs
         """
 
         print('retro.exec_')
         print(op)
 
-    def __init__(self):
-
-        self.event = Event()
+    def __init__(self, module):
 
         def event_proc():
             while True:
-                ev = self.event.find_event('retro')
+                ev = self._event.find_event('retro')
                 self.exec_(ev['retro'])
 
         # with open('./retro/conf.json', 'r') as file:
-        #     _conf_dict = json.load(file)
+        #    self._conf_dict = json.load(file)
 
-        self._gra_afch = GraAfch(self.event)
-
-        self.event.register_module('retro', event_proc)
+        self._event = module.event
+        self._event.register_module('retro', event_proc)

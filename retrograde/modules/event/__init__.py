@@ -46,6 +46,7 @@ Misc variables:
 
 import json
 import sys
+
 from threading import Thread, Lock
 from time import localtime, strftime
 
@@ -64,8 +65,6 @@ from time import localtime, strftime
 
 class Event:
     """the event class
-
-
     """
 
     VERSION = '0.0.3'
@@ -205,7 +204,7 @@ class Event:
         else:
             assert False
 
-    def __init__(self):
+    def __init__(self, module):
         """find a module event
 
            unless there are one or more events on
@@ -219,8 +218,8 @@ class Event:
                 ev = self.find_event('event')
                 self.exec_(ev['event'])
 
-        # with open('./event/conf.json', 'r') as file:
-        #    _conf_dict = json.load(file)
+        with open(module.path(__file__, 'conf.json'), 'r') as file:
+            self._conf_dict = json.load(file)
 
         self._queue_lock = Lock()
         self._queue = []

@@ -107,11 +107,8 @@ class Timer:
                 event_ = self._event.find_event('timer')['timer']
                 etype_ = list(event_)[0]
                 if etype_ == 'event':
-                    print('ding')
-                    print(event_)
                     for ev in module_.events('timer'):
                         if event_['event'] == list(ev)[0]:
-                            print('timer event')
                             self._event.send_event(ev[event_['event']])
                 elif etype_ == 'exec':
                     self.exec_(event_)
@@ -120,7 +117,7 @@ class Timer:
 
         self._event = module_.event
 
-        with open(module.path(__file__, 'conf.json'), 'r') as file:
+        with open(module_.path(__file__, 'conf.json'), 'r') as file:
             self._conf_dict = json.load(file)
             
         self._event.register_module('timer', _event_proc)

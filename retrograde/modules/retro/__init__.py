@@ -71,15 +71,15 @@ class Retro:
         print('retro.exec_')
         print(op)
 
-    def __init__(self, module):
+    def __init__(self, module_):
 
         def event_proc():
             while True:
                 ev = self._event.find_event('retro')
                 self.exec_(ev['retro'])
 
-        # with open('./retro/conf.json', 'r') as file:
-        #    self._conf_dict = json.load(file)
+        with open(module_.path(__file__, 'conf.json'), 'r') as file:
+            self._conf_dict = json.load(file)
 
-        self._event = module.event
+        self._event = module_.event
         self._event.register_module('retro', event_proc)

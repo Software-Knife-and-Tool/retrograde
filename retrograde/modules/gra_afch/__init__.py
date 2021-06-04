@@ -223,10 +223,7 @@ class GraAfch:
         elif 'sync' in step:
             self._ncs31x.write_rtc(localtime())
         elif 'timer' in step:
-            print('timer')
-            print(step)
             def timer_():
-                print('ding')
                 self._event.make_event('gra-afch', 'event', 'timer')
             Timer(step['timer'] / 1000, timer_).start()
 
@@ -282,11 +279,8 @@ class GraAfch:
                 event_ = self._event.find_event('gra-afch')['gra-afch']
                 etype_ = list(event_)[0]
                 if etype_ == 'event':
-                    print('ding')
-                    print(event_)
-                    for ev in self._events():
+                    for ev in module_.events('gra-afch'):
                         if event_['event'] == list(ev)[0]:
-                            print('timer event')
                             self._event.send_event(ev[event_['event']])
                 elif etype_ == 'exec':
                     self.exec_(event_)
@@ -297,7 +291,7 @@ class GraAfch:
         self._event.register_module('gra-afch', _event_proc)
 
         self._conf_dict = []
-        with open(module.path(__file__, 'conf.json'), 'r') as file:
+        with open(module_.path(__file__, 'conf.json'), 'r') as file:
             self._conf_dict = json.load(file)
 
         # does ncs31x need the configuration dictionary?

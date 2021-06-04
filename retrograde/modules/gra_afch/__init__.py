@@ -288,7 +288,7 @@ class GraAfch:
                     assert False
 
         self._event = event
-        self._event.register_module('gra-afch', _event_proc)
+        self._event.register('gra-afch', _event_proc)
 
         self._conf_dict = []
         with open(module_.path(__file__, 'conf.json'), 'r') as file:

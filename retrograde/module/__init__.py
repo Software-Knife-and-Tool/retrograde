@@ -34,12 +34,11 @@ Misc variables:
 import json
 import os
 import sys
-import time
 
-from event import Event
-from gra_afch import GraAfch
-from retro import Retro
-from timer import Timer
+import event
+import gra_afch
+import retro
+import watchdog
 
 class Module:
     """module class/utility routines
@@ -53,7 +52,7 @@ class Module:
     event = None
     gra_afch = None
     retro = None
-    timer = None
+    watchdog = None
 
     def path(self, path, file_name):
         return os.path.join(os.path.abspath(os.path.dirname(path)), file_name)
@@ -86,7 +85,7 @@ class Module:
         with open(self.path(__file__, 'conf.json'), 'r') as file:
             self._modules_dict = json.load(file)
 
-        self.event = Event(self)
-        self.gra_afch = GraAfch(self)
-        self.retro = Retro(self)
-        self.timer = Timer(self)
+        self.event = event.Event(self)
+        self.gra_afch = gra_afch.GraAfch(self)
+        self.retro = retro.Retro(self)
+        self.watchdog = watchdog.Watchdog(self)

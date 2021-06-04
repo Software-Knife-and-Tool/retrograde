@@ -3,14 +3,12 @@
 #
 .PHONY: lint venv
 SRCS = \
-	app.py     	        	\
-	module/__init__.py		\
-	module/config.py		\
-	modules/event/__init__.py	\
-	modules/gra_afch/__init__.py	\
-	modules/gra_afch/blank.py	\
-	modules/gra_afch/ncs31x.py	\
-	modules/retro/__init__.py
+	app.py         			\
+	module				\
+	modules/event/*.py		\
+	modules/gra_afch/*.py		\
+	modules/retro/*.py		\
+	modules/watchdog/*.py
 
 BASE = /home/putnamjm/retrograde/retrograde
 
@@ -40,7 +38,7 @@ lint:
 
 	@for i in $(SRCS); do		\
 	    echo -n $$i ": ";		\
-	    env "PATH=$(BIN)" "PYTHONPATH=$(PACKAGES)" pylint $$i | egrep -v "^-";	\
+	    env "PATH=$(BIN)" "PYTHONPATH=$(PYTHONPATH):$(PACKAGES)" pylint $$i | egrep -v "^-";	\
 	done
 
 lint-summary:

@@ -8,14 +8,14 @@
 
 ##########
 ##
-## timer module
+## watchdog module
 ##
 ###########
 
 """retrograde timers
 
 Classes:
-    Timer
+    Watchdog
 
 Functions:
 
@@ -44,14 +44,13 @@ Misc variables:
 """
 
 import json
-import time
 
 from time import localtime, strftime
 from threading import Thread, Lock, Timer
 
 import module
 
-class Timer:
+class Watchdog:
     """run the rotor thread
     """
 
@@ -104,7 +103,7 @@ class Timer:
             """
 
             while True:
-                event_ = self._event.find_event('timer')['timer']
+                event_ = self._event.find_event('watchdog')['timer']
                 etype_ = list(event_)[0]
                 if etype_ == 'event':
                     for ev in module_.events('timer'):
@@ -119,5 +118,5 @@ class Timer:
 
         with open(module_.path(__file__, 'conf.json'), 'r') as file:
             self._conf_dict = json.load(file)
-            
-        self._event.register_module('timer', _event_proc)
+
+        self._event.register('watchdog', _event_proc)

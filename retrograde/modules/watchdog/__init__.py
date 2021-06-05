@@ -48,8 +48,6 @@ import json
 from time import localtime, strftime
 from threading import Thread, Lock, Timer
 
-import module
-
 class Watchdog:
     """run the rotor thread
     """
@@ -69,7 +67,7 @@ class Watchdog:
             print(step)
             def timer_():
                 print('ding')
-                self._event.make_event('gra-afch', 'event', 'timer')
+                self.event.make_event('gra-afch', 'event', 'timer')
             Timer(step['timer'] / 1000, timer_).start()
 
             # Timer(step['timer'] / 1000,
@@ -87,8 +85,8 @@ class Watchdog:
 
     def config(self):
         return self._conf_dict
-    
-    def __init__(self, module_):
+
+    def __init__(self, retro):
         """initialize the timer module
 
             read the config file
@@ -106,10 +104,10 @@ class Watchdog:
             """
 
             while True:
-                event_ = self._event.find_event('watchdog')['timer']
+                event_ = self.event.find_event('watchdog')['timer']
                 etype_ = list(event_)[0]
                 if etype_ == 'event':
-                    for ev in module_.events('timer'):
+                    for ev in retro.events('timer'):
                         if event_['event'] == list(ev)[0]:
                             self._event.send_event(ev[event_['event']])
                 elif etype_ == 'exec':
@@ -117,10 +115,10 @@ class Watchdog:
                 else:
                     assert False
 
-        self._event = module_.event
+        self.event = retro.event
 
         self._conf_dict = []
-        with open(module_.path(__file__, 'conf.json'), 'r') as file:
+        with open(retro.path(__file__, 'conf.json'), 'r') as file:
             self._conf_dict = json.load(file)
 
-        self._event.register('watchdog', _event_proc)
+        self.event.register('watchdog', _event_proc)

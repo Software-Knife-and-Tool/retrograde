@@ -52,7 +52,6 @@ import wiringpi
 from time import localtime, strftime
 from threading import Thread, Lock, Timer
 
-import module
 from .ncs31x import Ncs31x
 
 class GraAfch:
@@ -235,7 +234,7 @@ class GraAfch:
 
     def config(self):
         return self._conf_dict
-    
+
     def run_rotor(self, rotor_def):
         """run the rotor thread
         """
@@ -251,7 +250,7 @@ class GraAfch:
         self._rotor = Thread(target = rotor_proc, args = (rotor_def, ))
         self._rotor.start()
 
-    def __init__(self, module_):
+    def __init__(self, retro_):
         """initialize the gra-afch module
 
             register with the event module
@@ -259,7 +258,7 @@ class GraAfch:
             crank up the default rotor
         """
 
-        event = module_.event
+        event = retro_.event
 
         def _event_proc():
             """grab one of our events off the queue
@@ -275,7 +274,7 @@ class GraAfch:
                 event_ = self._event.find_event('gra-afch')['gra-afch']
                 etype_ = list(event_)[0]
                 if etype_ == 'event':
-                    for ev in module_.events('gra-afch'):
+                    for ev in retro_.events('gra-afch'):
                         if event_['event'] == list(ev)[0]:
                             self._event.send_event(ev[event_['event']])
                 elif etype_ == 'exec':
@@ -287,10 +286,10 @@ class GraAfch:
         self._event.register('gra-afch', _event_proc)
 
         self._conf_dict = []
-        with open(module_.path(__file__, 'conf.json'), 'r') as file:
+        with open(retro_.path(__file__, 'conf.json'), 'r') as file:
             self._conf_dict = json.load(file)
 
         # does ncs31x need the configuration dictionary?
         self._ncs31x = Ncs31x(self._conf_dict)
 
-        self.run_rotor(module_.find_rotor('default')['default'])
+        self.run_rotor(retro_.find_rotor('default')['default'])

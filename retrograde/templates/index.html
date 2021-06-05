@@ -20,12 +20,12 @@
       <div class="p-4 m-4 bg-green-300 text-green-900 h-auto">
         <div>
           <h1 style="display:inline"> Retrograde: </h1>
-          <div style="display:inline">{{ template['date'] }}</div>
+          <div style="display:inline" id="date">{{ template['date'] }}</div>
         </div>
         <br />
         <div>
           <h2 style="display:inline" align=left>version: </h2>
-          <div style="display:inline">{{ version }}</div>
+          <div style="display:inline" id="version">{{ version }}</div>
         </div>
         <div>
           <h2 style="display:inline" align=left>host: </h2>
@@ -45,11 +45,7 @@
         <div class="p-4 m-4 bg-green-300 text-green-900 h-auto">
           <div>
             <h1 style="display:inline"> {{ module }} module: </h1>
-          </div>
-          <br />
-          <div>
-            <h2 style="display:inline" align=left>version: </h2>
-            <div style="display:inline" id="version">{{ template['versions'][module] }}</div>
+            <div style="display:inline"> {{ template['versions'][module] }}</div>
           </div>
           <div>
             <h2 style="display:inline" align=left>configuration: </h2>
@@ -62,13 +58,17 @@
   <script src="static/js/lumen.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
   <script type="text/javascript" charset="utf-8">
-    var socket = io();
+    var socket = io()
     socket.on('connect', function() {
-        console.log('client connected');
-        socket.send('json', {yo: 'yo'})
-    });
-    socket.on('message', function(json) {
-        console.log('client receives:');
-    });
+        console.log('client connects')
+        socket.send('json', {webapp: 'connects'})
+    })
+    socket.on('json', function(json, str) {
+        console.log('client receives json:', end='');
+        // console.log(JSON.stringify(json))
+        // console.log(json['id'])
+        document.getElementById(json['id']).innerHTML = json['value']
+        // console.log(document.getElementById('version'))
+    })
   </script>
 </html>

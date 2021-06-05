@@ -18,14 +18,12 @@
 
 """
 
-import socket
-import time
 import json
 
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 
-from module import Module
+from retro import Retro
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_mapping(
@@ -33,28 +31,39 @@ app.config.from_mapping(
     # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
 )
 
-VERSION = '0.0.1'
-_module = Module()
-
+VERSION = '0.0.2'
 socketio = SocketIO(app)
 
-@socketio.on('json')
-def recv_message(json_):
-    print('server:receive json:')
-    print(json.loads(json_))
+def _message(id_, value):
+    fmt = '{{ "id": "{}", "value": "{}" }}'
+    return fmt.format(id_, value)
 
 @socketio.on('json')
-def send_message(obj):
-    print('server:send json: ')
-    print(obj)
-    socketio.send('json', json.dumps(obj))
+def send_json(obj):
+    socketio.send(obj, obj)
+
+_retro = Retro(send_json)
+
+@socketio.on('connect')
+def _con_message():
+    # print('webapp connects: ')
+    send_json(json.loads(_message('version', VERSION)))
+
+@socketio.on('disconnect')
+def _discon_message():
+    pass
+    # print('webapp disconnects: ')
+
+@socketio.on('json')
+def recv_json(json_):
+    pass
+    # print('receive json: ', end='')
+    # print(str(json_))
 
 @app.route('/')
 def render():
     return render_template('index.html',
                            version = VERSION,
-                           template = _module.retro.template(_module))
+                           template = _retro.template())
 
 socketio.run(app, host='0.0.0.0')
-# send_message({'date': datetime.now().strftime('%B %d, %Y %H:%M:%S ')
-#              + time.localtime().tm_zone})

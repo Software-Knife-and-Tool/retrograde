@@ -22,8 +22,6 @@ import socket
 import time
 import json
 
-from datetime import datetime
-
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 
@@ -35,6 +33,7 @@ app.config.from_mapping(
     # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
 )
 
+VERSION = '0.0.1'
 _module = Module()
 
 socketio = SocketIO(app)
@@ -53,15 +52,8 @@ def send_message(obj):
 @app.route('/')
 def render():
     return render_template('index.html',
-                           host = socket.gethostname(),
-                           version = _module.VERSION,
-                           serial = '0000001',
-                           retrograde_conf = _module.config(),
-                           gra_afch_conf = _module.gra_afch.config(),
-                           skew = 0.0,
-                           date = datetime.now().strftime('%B %d, %Y %H:%M:%S ')
-                           + time.localtime().tm_zone,
-                           )
+                           version = VERSION,
+                           template = _module.retro.template(_module))
 
 socketio.run(app, host='0.0.0.0')
 # send_message({'date': datetime.now().strftime('%B %d, %Y %H:%M:%S ')

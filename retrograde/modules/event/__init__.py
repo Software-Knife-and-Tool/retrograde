@@ -204,6 +204,9 @@ class Event:
         else:
             assert False
 
+    def config(self):
+        return self._conf_dict
+    
     def __init__(self, module):
         """find a module event
 
@@ -218,6 +221,7 @@ class Event:
                 ev = self.find_event('event')
                 self.exec_(ev['event'])
 
+        self._conf_dict = []
         with open(module.path(__file__, 'conf.json'), 'r') as file:
             self._conf_dict = json.load(file)
 

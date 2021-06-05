@@ -206,7 +206,7 @@ class Event:
 
     def config(self):
         return self._conf_dict
-    
+
     def __init__(self, module):
         """find a module event
 

@@ -3,12 +3,11 @@
 #
 .PHONY: lint venv
 SRCS = \
-	app.py         			\
-	module				\
-	modules/event/*.py		\
-	modules/gra_afch/*.py		\
-	modules/retro/*.py		\
-	modules/watchdog/*.py
+	app.py         		\
+	modules/event/*.py	\
+	modules/gra_afch/*.py	\
+	modules/watchdog/*.py	\
+	retro/*.py
 
 BASE = /home/putnamjm/retrograde/retrograde
 

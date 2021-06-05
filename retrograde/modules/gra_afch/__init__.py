@@ -57,8 +57,6 @@ from .ncs31x import Ncs31x
 
 class GraAfch:
     """run the rotor thread
-
-
     """
 
     VERSION = '0.0.3'
@@ -226,11 +224,6 @@ class GraAfch:
             def timer_():
                 self._event.make_event('gra-afch', 'event', 'timer')
             Timer(step['timer'] / 1000, timer_).start()
-
-            # Timer(step['timer'] / 1000,
-            #      lambda : self._event.make_event('gra-afch',
-            #                                      'event',
-            #                                      'timer')).start()
         else:
             assert False
 
@@ -240,6 +233,9 @@ class GraAfch:
 
         return None
 
+    def config(self):
+        return self._conf_dict
+    
     def run_rotor(self, rotor_def):
         """run the rotor thread
         """

@@ -20,49 +20,43 @@
       <div class="p-4 m-4 bg-green-300 text-green-900 h-auto">
         <div>
           <h1 style="display:inline"> Retrograde: </h1>
-          <div style="display:inline">{{ date }}</div>
+          <div style="display:inline">{{ template['date'] }}</div>
         </div>
         <br />
         <div>
-          <h2 style="display:inline" align=left>host: </h2>
-          <div style="display:inline" id="host">{{ retrograde_conf['hostname'] }}</div>
+          <h2 style="display:inline" align=left>version: </h2>
+          <div style="display:inline">{{ version }}</div>
         </div>
         <div>
-          <h2 style="display:inline" align=left>version: </h2>
-          <div style="display:inline" id="version">{{ version }}</div>
+          <h2 style="display:inline" align=left>host: </h2>
+          <div style="display:inline">{{ template['host'] }}</div>
         </div>
         <div>
           <h2 style="display:inline" align=left>serial number: </h2>
-          <div style="display:inline" id="version">{{ serial }}</div>
+          <div style="display:inline">{{ template['serial'] }}</div>
         </div>
         <div>
           <h2 style="display:inline" align=left>WAP: </h2>
-          <div style="display:inline">{{ retrograde_conf['wap'] }}</div>
+          <div style="display:inline">{{ template['wap'] }}</div>
         </div>
-        <div>
-          <h2 style="display:inline" align=left>clock skew: </h2>
-          <div style="display:inline">{{ skew }}</div>
+      </div
+      {# thank deity, I can have comments #}>
+      {% for module in template['modules'] %}
+        <div class="p-4 m-4 bg-green-300 text-green-900 h-auto">
+          <div>
+            <h1 style="display:inline"> {{ module }} module: </h1>
+          </div>
+          <br />
+          <div>
+            <h2 style="display:inline" align=left>version: </h2>
+            <div style="display:inline" id="version">{{ template['versions'][module] }}</div>
+          </div>
+          <div>
+            <h2 style="display:inline" align=left>configuration: </h2>
+            <div style="display:inline">{{ template['configs'][module] }}</div>
+          </div>
         </div>
-        <div>
-          <h2 style="display:inline" align=left>configuration: </h2>
-          <div style="display:inline">{{ retrograde_conf }}</div>
-        </div>
-      </div>
-      <div class="p-4 m-4 bg-green-300 text-green-900 h-auto">
-        <div>
-          <h1 style="display:inline"> GRA-AFCH Controller: </h1>
-          <div style="display:inline">{{ date }}</div>
-        </div>
-        <br />
-        <div>
-          <h2 style="display:inline" align=left>version: </h2>
-          <div style="display:inline" id="version">{{ 'NCS31X' }}</div>
-        </div>
-        <div>
-          <h2 style="display:inline" align=left>configuration: </h2>
-          <div style="display:inline">{{ gra_afch_conf }}</div>
-        </div>
-      </div>
+        {% endfor %}
     </div>
   </body>
   <script src="static/js/lumen.js"></script>

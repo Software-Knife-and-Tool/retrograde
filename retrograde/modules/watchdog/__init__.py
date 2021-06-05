@@ -85,6 +85,9 @@ class Watchdog:
 
         return None
 
+    def config(self):
+        return self._conf_dict
+    
     def __init__(self, module_):
         """initialize the timer module
 
@@ -116,6 +119,7 @@ class Watchdog:
 
         self._event = module_.event
 
+        self._conf_dict = []
         with open(module_.path(__file__, 'conf.json'), 'r') as file:
             self._conf_dict = json.load(file)
 

@@ -46,7 +46,7 @@ class Module:
 
     VERSION = '0.0.1'
 
-    _modules_dict = None
+    _conf_dict = None
 
     # modules
     event = None
@@ -54,6 +54,21 @@ class Module:
     retro = None
     watchdog = None
 
+    def config(self, module):
+
+        if 'module' == module:
+            return self._conf_dict
+        elif 'event' == module:
+            return self.event.config()
+        elif 'gra-afch' == module:
+            return self.gra_afch.config()
+        elif 'retro' == module:
+            return self.retro.config()
+        elif 'watchdog' == module:
+            return self.watchdog.config()
+        else:
+            assert False
+    
     def path(self, path, file_name):
         return os.path.join(os.path.abspath(os.path.dirname(path)), file_name)
 
@@ -61,29 +76,29 @@ class Module:
         """find module event configuration
         """
 
-        return next((x for x in self._modules_dict['events']
+        return next((x for x in self._conf_dict['events']
                      if module_name in x), None)
 
     def find_rotor(self, rotor_name):
         """find rotor
         """
 
-        return next((x for x in self._modules_dict['rotors']
+        return next((x for x in self._conf_dict['rotors']
                      if rotor_name in x), None)
 
     def rotors(self):
         """find rotor definitions
         """
 
-        return self._modules_dict['rotors']
+        return self._conf_dict['rotors']
 
     def __init__(self):
         """instantiate all the modules
         """
 
-        self._modules_dict = []
-        with open(self.path(__file__, 'conf.json'), 'r') as file:
-            self._modules_dict = json.load(file)
+        self._conf_dict = []
+        with open(self.path(__file__, '../conf.json'), 'r') as file:
+            self._conf_dict = json.load(file)
 
         self.event = event.Event(self)
         self.gra_afch = gra_afch.GraAfch(self)

@@ -1,0 +1,57 @@
+@font-face {
+    font-family: 'Magneto';
+    src: url('/static/css/MAGNETOB.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'DymaxionScript';
+    src: url('/static/css/DYMAXION.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+//
+//          <button class="bg-green-300 hover:bg-green-400 text-black font-normal py-2 px-4 rounded">
+//
+//          </button>
+//
+
+// buttons
+.btn {
+    @apply font-bold py-2 px-4 rounded;
+}
+
+.btn-blue {
+    @apply bg-blue-500 text-white;
+}
+
+.btn-blue:hover {
+    @apply bg-blue-700;
+}
+
+.retro {
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 18px;
+    transition: duration-300 ease-in-out;
+    focus: outline-none shadow-outline bg-purple-700;
+}
+
+.retro:hover {
+    background-color: bg-purple-700;
+    color: text-white;
+    font-weight: bold;
+    border: rounded;
+}
+
+.retro:focus {
+    background-color: bg-purple-900;
+    color: text-white;
+    font-weight: italic;
+    border: rounded;
+}

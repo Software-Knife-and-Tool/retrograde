@@ -34,20 +34,22 @@ app.config.from_mapping(
 VERSION = '0.0.2'
 socketio = SocketIO(app)
 
-def _message(id_, value):
-    fmt = '{{ "id": "{}", "value": "{}" }}'
-    return fmt.format(id_, value)
-
 @socketio.on('json')
 def send_json(obj):
+    # print('send json: ', end='')
+    # print(obj)
     socketio.send(obj, obj)
-
-_retro = Retro(send_json)
 
 @socketio.on('connect')
 def _con_message():
-    # print('webapp connects: ')
+    def _message(id_, value):
+        fmt = '{{ "id": "{}", "value": "{}" }}'
+        return fmt.format(id_, value)
+
+    # print('server: webapp connects: ')
     send_json(json.loads(_message('version', VERSION)))
+
+_retro = Retro(send_json)
 
 @socketio.on('disconnect')
 def _discon_message():
@@ -56,9 +58,9 @@ def _discon_message():
 
 @socketio.on('json')
 def recv_json(json_):
-    pass
     # print('receive json: ', end='')
     # print(str(json_))
+    _retro.recv_json(json_)
 
 @app.route('/')
 def render():

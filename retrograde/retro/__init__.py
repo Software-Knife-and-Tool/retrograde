@@ -137,6 +137,10 @@ class Retro:
         print('retro.exec_')
         print(op)
 
+    def recv_json(self, obj):
+        print('retro gets told')
+        print(obj)
+
     def __init__(self, send_json):
         def event_proc():
             while True:

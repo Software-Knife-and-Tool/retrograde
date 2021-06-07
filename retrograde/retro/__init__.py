@@ -40,6 +40,7 @@ import time
 from datetime import datetime
 
 from flask_socketio import SocketIO
+from threading import Thread, Lock, Timer
 
 import event
 import gra_afch
@@ -54,7 +55,9 @@ class Retro:
 
     _conf_dict = None
     event = None
-
+    _clock = None
+    _send_json = None
+    
     # modules
     event = None
     gra_afch = None
@@ -103,8 +106,8 @@ class Retro:
                              'retro',
                              'watchdog'
                 ],
-                'versions': { 'event':  self.event.VERSION,
-                              'gra-afch':  self.gra_afch.VERSION,
+                'versions': { 'event': self.event.VERSION,
+                              'gra-afch': self.gra_afch.VERSION,
                               'retro': self.VERSION,
                               'watchdog': self.watchdog.VERSION
                 },
@@ -119,7 +122,7 @@ class Retro:
         }
 
     def exec_(self, op):
-        """retor execs
+        """retro execs
         """
 
         print('retro.exec_')
@@ -131,11 +134,21 @@ class Retro:
             if 'toggle' in webapp:
                 self.event.make_event('gra-afch', 'event', 'toggle')
 
+    def send_json(self, id_, value):
+        def _message(id_, value):
+            fmt = '{{ "id": "{}", "value": "{}" }}'
+            return fmt.format(id_, value)
+
+        # print(_message(id_, value))
+        self._send_json(json.loads(_message(id_, value)))
+    
     def __init__(self, send_json):
         def event_proc():
             while True:
                 ev = self.event.find_event('retro')
                 self.exec_(ev['retro'])
+
+        self._send_json = send_json
 
         self._conf_dict = []
         with open(self.path(__file__, '../conf.json'), 'r') as file:
@@ -147,3 +160,16 @@ class Retro:
         self.watchdog = watchdog.Watchdog(self)
 
         self.event.register('retro', event_proc)
+
+        def time_proc():
+            def timer_():
+                thread_ = None
+                self.send_json('version', datetime.now().strftime('%B %d, %Y %H:%M:%S'))
+                thread_ = Timer(1, timer_)
+                thread_.start()
+
+            thread_ = Timer(1, timer_)
+            thread_.start()
+
+        self._clock = Thread(target = time_proc)
+        self._clock.start()

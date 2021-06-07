@@ -192,7 +192,6 @@ class Event:
            unless there are one or more events on
            the queue for module, wait until
            send_event releases the wait lock.
-
         """
 
         step = op['exec']

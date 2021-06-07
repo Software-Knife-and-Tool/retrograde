@@ -24,28 +24,16 @@ Functions:
     load(file) -> object
     loads(string) -> object
 
-    buttons()
-    default_rotor()
-    display_string(digits)
-    exec_(op)
-    gra_afch()
-    run_rotor(rotor_def)
-    update_backlight(color)
-
 Misc variables:
 
     VERSION
     _conf_dict
-    _dots
-    _lock
-    _rotor
-    _tube_mask
 
 """
 
 import json
-import socket
 import os
+import socket
 import sys
 import time
 
@@ -138,8 +126,10 @@ class Retro:
         print(op)
 
     def recv_json(self, obj):
-        print('retro gets told')
-        print(obj)
+        if 'webapp' in obj:
+            webapp = obj['webapp']
+            if 'toggle' in webapp:
+                self.event.make_event('gra-afch', 'event', 'toggle')
 
     def __init__(self, send_json):
         def event_proc():

@@ -43,7 +43,7 @@
         <h2 style="display:inline" align=left>WAP: </h2>
         <div style="display:inline">{{ template['wap'] }}</div>
       </div>
-      <button type="button" class="retro" onclick="retroButton()">Retro</button>
+      <button type="button" class="retro" onclick="retroButton()">Toggle</button>
     </div>
     <div>
       {% for module in template['modules'] %}
@@ -77,8 +77,8 @@
     })
 
     function retroButton() {
-        console.log('button pressed')
-        socket.emit('json', {webapp: 'button'})
+        console.log('toggle button pressed')
+        socket.emit('json', {webapp: 'toggle-button'})
     }
   </script>
 </html>

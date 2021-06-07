@@ -48,7 +48,8 @@ import json
 import sys
 
 from threading import Thread, Lock
-from time import localtime, strftime
+from time import localtime, strftime, time, sleep
+from datetime import datetime
 
 ##########
 #
@@ -77,8 +78,11 @@ class Event:
     _modules_lock = None
     _modules = None
 
-    def _lock_module(self, module):
+    # this gives us around one second event latency
+    _HIGH_WATER_MARK = 28
+    _LOW_WATER_MARK = 0
 
+    def _lock_module(self, module):
         with self._modules_lock:
             for lock_desc in self._modules:
                 module_, lock_, _ = lock_desc
@@ -103,7 +107,6 @@ class Event:
             to allow that we can grovel through the
             queue and set the lock state accordingly
             like find_event.
-
         """
 
         with self._modules_lock:
@@ -120,7 +123,6 @@ class Event:
            unless there are one or more events on
            the queue for module, wait until
            send_event releases the wait lock.
-
         """
 
         def in_queue():
@@ -128,15 +130,17 @@ class Event:
 
         def_ = None
 
-        lock = self._lock_module(module)
-        lock.acquire()
+        lock_ = self._lock_module(module)
+        lock_.acquire()
 
         with self._queue_lock:
             def_ = in_queue()
-            if def_:
-                self._queue.remove(def_)
-            if in_queue() and lock.locked():
-                lock.release()
+
+            assert def_
+            self._queue.remove(def_)
+
+            if in_queue() and lock_.locked():
+                lock_.release()
 
         return def_
 
@@ -149,16 +153,22 @@ class Event:
             module locks are only changed
             with the queue lock held, so
             this is safe.
-
         """
 
-        module = list(ev)[0]
-        lock = self._lock_module(module)
+        module_ = list(ev)[0]
+        type_ = ev[module_]
+
+        lock_ = self._lock_module(module_)
+
+        if len(self._queue) > self._HIGH_WATER_MARK:
+            if 'event' != type_:
+                while len(self._queue) > self._LOW_WATER_MARK:
+                    sleep(0.0)
 
         with self._queue_lock:
             self._queue.append(ev)
-            if lock.locked():
-                lock.release()
+            if lock_.locked():
+                lock_.release()
 
     def make_event(self, module, type_, arg):
         """find a module event
@@ -166,10 +176,13 @@ class Event:
            unless there are one or more events on
            the queue for module, wait until
            send_event releases the wait lock.
-
         """
 
         fmt = '{{ "{}": {{ "{}": "{}" }} }}'
+
+        # print('make event: ', end='')
+        # print(fmt.format(module, type_, arg))
+        # print(datetime.now().strftime('%H:%M:%S:%f'))
 
         self.send_event(json.loads(fmt.format(module, type_, arg)))
 
@@ -208,12 +221,7 @@ class Event:
         return self._conf_dict
 
     def __init__(self, module):
-        """find a module event
-
-           unless there are one or more events on
-           the queue for module, wait until
-           send_event releases the wait lock.
-
+        """create an event object
         """
 
         def event_proc():

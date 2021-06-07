@@ -50,6 +50,7 @@ import time
 import wiringpi
 
 from time import localtime, strftime
+from datetime import datetime
 from threading import Thread, Lock, Timer
 
 from .ncs31x import Ncs31x
@@ -68,6 +69,7 @@ class GraAfch:
     _ncs31x = None
 
     _tube_mask = [255 for _ in range(8)]
+    _toggle = None
 
 # def string_to_color(str_):
 #    def ctoi_(nib):#
@@ -97,8 +99,6 @@ class GraAfch:
 
     def update_backlight(self, color):
         """run the rotor thread
-
-
         """
 
         def scale_(nval):
@@ -110,8 +110,6 @@ class GraAfch:
 
     def display_string(self, digits):
         """run the rotor thread
-
-
         """
 
         def tubes_(str_, start):
@@ -158,8 +156,6 @@ class GraAfch:
 
     def buttons(self):
         """run the rotor thread
-
-
         """
 
         # auto pin = _MODE_BUTTON_PIN
@@ -195,7 +191,6 @@ class GraAfch:
     def exec_(self, op):
         """gra-afch operations
         """
-
         step = op['exec']
 
         if 'delay' in step:
@@ -219,10 +214,6 @@ class GraAfch:
             self.display_string(step['display'])
         elif 'sync' in step:
             self._ncs31x.write_rtc(localtime())
-        elif 'timer' in step:
-            def timer_():
-                self._event.make_event('gra-afch', 'event', 'timer')
-            Timer(step['timer'] / 1000, timer_).start()
         else:
             assert False
 
@@ -272,13 +263,26 @@ class GraAfch:
 
             while True:
                 event_ = self._event.find_event('gra-afch')['gra-afch']
-                etype_ = list(event_)[0]
-                if etype_ == 'event':
-                    for ev in retro_.events('gra-afch'):
-                        if event_['event'] == list(ev)[0]:
-                            self._event.send_event(ev[event_['event']])
-                elif etype_ == 'exec':
+                type_ = list(event_)[0]
+
+                if type_ == 'exec':
                     self.exec_(event_)
+
+                elif type_ == 'event':
+                    arg_ = event_['event']
+                    # print('event!: ', end='')
+                    # print(event_)
+                    # print(datetime.now().strftime('%H:%M:%S:%f'))
+
+                    if 'toggle' == arg_:
+                        self._toggle = not self._toggle
+                    elif 'timer' == arg_:
+                        def timer_():
+                            Timer(event_['timer'] / 1000, timer_).start()
+                    else:
+                        for ev in retro_.events('gra-afch'):
+                            if arg_ == list(ev)[0]:
+                                self._event.send_event(ev[arg_])
                 else:
                     assert False
 
@@ -289,6 +293,7 @@ class GraAfch:
         with open(retro_.path(__file__, 'conf.json'), 'r') as file:
             self._conf_dict = json.load(file)
 
+        self._toggle = True
         # does ncs31x need the configuration dictionary?
         self._ncs31x = Ncs31x(self._conf_dict)
 

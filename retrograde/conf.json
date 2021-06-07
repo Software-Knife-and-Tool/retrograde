@@ -21,7 +21,6 @@
               { "gra-afch": { "exec": { "mask": 0 } } },
               { "gra-afch": { "exec": { "delay": 1000 } } },
               { "gra-afch": { "exec": { "mask": 255 } } },
-              { "gra-afch": { "exec": { "timer": 10000 } } },
               { "event":    { "exec": { "repeat": { "count": 3,
                                                     "block": [
                                                         { "gra-afch": { "exec": { "date-time": "%m%d%y" } } },

@@ -193,6 +193,10 @@ class GraAfch:
         """
         step = op['exec']
 
+        if not self._toggle:
+            self._ncs31x.blank(not self._toggle)
+            return
+        
         if 'delay' in step:
             wiringpi.delay(int(step['delay']))
         elif 'blank' in step:

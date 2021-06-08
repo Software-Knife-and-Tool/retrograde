@@ -12,9 +12,27 @@
 ##
 ###########
 
-"""
+"""app: retrograde entry point
 
-    App: retrograde entry point and webapp
+    flask/socketio configuration
+    webapp socket protocol
+
+See module retro for system interface.
+
+Classes:
+
+Functions:
+
+    dump(object, file)
+    dumps(object) -> string
+    load(file) -> object
+    loads(string) -> object
+
+Misc variables:
+
+    VERSION
+    app
+    socketio
 
 """
 
@@ -25,13 +43,14 @@ from flask_socketio import SocketIO
 
 from retro import Retro
 
+VERSION = '0.0.2'
+
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_mapping(
     # SECRET_KEY='dev',
     # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
 )
 
-VERSION = '0.0.2'
 socketio = SocketIO(app)
 
 @socketio.on('json')
@@ -41,18 +60,18 @@ def send_json(obj):
     socketio.send(obj, obj)
 
 @socketio.on('connect')
-def _con_message():
-    def _message(id_, value):
+def _connect():
+    def fmt_(id_, value):
         fmt = '{{ "id": "{}", "value": "{}" }}'
         return fmt.format(id_, value)
 
     # print('server: webapp connects: ')
-    send_json(json.loads(_message('version', VERSION)))
+    send_json(json.loads(fmt_('version', VERSION)))
 
 _retro = Retro(send_json)
 
 @socketio.on('disconnect')
-def _discon_message():
+def _disconnect():
     pass
     # print('webapp disconnects: ')
 

@@ -36,11 +36,6 @@ Functions:
 Misc variables:
 
     VERSION
-    _conf_dict
-    _modules
-    _modules_lock
-    _queue
-    _queue_lock
 
 """
 

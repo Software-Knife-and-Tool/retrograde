@@ -98,7 +98,7 @@ class GraAfch:
 #    return [r, g, b];
 
     def update_backlight(self, color):
-        """run the rotor thread
+        """change the backlight color
         """
 
         def scale_(nval):
@@ -109,7 +109,7 @@ class GraAfch:
                                 scale_(color[2])])
 
     def display_string(self, digits):
-        """run the rotor thread
+        """stuff the tubes from decimal string
         """
 
         def tubes_(str_, start):
@@ -155,7 +155,7 @@ class GraAfch:
         self._ncs31x.display(buffer)
 
     def buttons(self):
-        """run the rotor thread
+        """button events
         """
 
         # auto pin = _MODE_BUTTON_PIN
@@ -193,11 +193,10 @@ class GraAfch:
         """
         step = op['exec']
 
+        # this is wrong
         if not self._toggle:
             self._ncs31x.blank(not self._toggle)
-            return
-        
-        if 'delay' in step:
+        elif 'delay' in step:
             wiringpi.delay(int(step['delay']))
         elif 'blank' in step:
             self._ncs31x.blank(step['blank'])
@@ -230,7 +229,7 @@ class GraAfch:
     def config(self):
         return self._conf_dict
 
-    def run_rotor(self, rotor_def):
+    def _run_rotor(self, rotor_def):
         """run the rotor thread
         """
 
@@ -255,7 +254,7 @@ class GraAfch:
 
         event = retro_.event
 
-        def _event_proc():
+        def event_proc():
             """grab one of our events off the queue
 
                if it's an exec, do it.
@@ -291,7 +290,7 @@ class GraAfch:
                     assert False
 
         self._event = event
-        self._event.register('gra-afch', _event_proc)
+        self._event.register('gra-afch', event_proc)
 
         self._conf_dict = []
         with open(retro_.path(__file__, 'conf.json'), 'r') as file:
@@ -301,4 +300,4 @@ class GraAfch:
         # does ncs31x need the configuration dictionary?
         self._ncs31x = Ncs31x(self._conf_dict)
 
-        self.run_rotor(retro_.find_rotor('default')['default'])
+        self._run_rotor(retro_.find_rotor('default')['default'])

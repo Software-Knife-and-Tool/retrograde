@@ -12,7 +12,7 @@
 ##
 ###########
 
-"""Manage GRA-AFCH NCS31X hardware
+"""retro manages modules and webapp events
 
 Classes:
     Retro
@@ -27,7 +27,6 @@ Functions:
 Misc variables:
 
     VERSION
-    _conf_dict
 
 """
 
@@ -53,29 +52,36 @@ class Retro:
 
     VERSION = '0.0.3'
 
-    _conf_dict = None
-    event = None
-    _clock = None
-    _send_json = None
-    
     # modules
     event = None
     gra_afch = None
     watchdog = None
 
+    _conf_dict = None
+    _clock = None
+    _send_json = None
+
     def config(self, module):
+        """get the config dict from the named module
+        """
+
+        conf_ = None
         if 'event' == module:
-            return self.event.config()
+            conf_ = self.event.config()
         elif 'gra-afch' == module:
-            return self.gra_afch.config()
+            conf_ = self.gra_afch.config()
         elif 'retro' == module:
-            return self._conf.json
+            conf_ =  self._conf.json
         elif 'watchdog' == module:
-            return self.watchdog.config()
-        else:
-            assert False
+            conf_ = self.watchdog.config()
+
+        assert conf_
+        return conf_
 
     def path(self, path, file_name):
+        """make an absolute path to module
+        """
+
         return os.path.join(os.path.abspath(os.path.dirname(path)), file_name)
 
     def events(self, module_name):
@@ -88,7 +94,6 @@ class Retro:
     def find_rotor(self, rotor_name):
         """find rotor
         """
-
         return next((x for x in self._conf_dict['rotors']
                      if rotor_name in x), None)
 
@@ -99,6 +104,9 @@ class Retro:
         return self._conf_dict['rotors']
 
     def template(self):
+        """return webapp state
+        """
+
         return {
                 'host': socket.gethostname(),
                 'modules': [ 'event',
@@ -129,20 +137,49 @@ class Retro:
         print(op)
 
     def recv_json(self, obj):
+        """get an event from the webapp
+        """
+
         if 'webapp' in obj:
             webapp = obj['webapp']
             if 'toggle' in webapp:
                 self.event.make_event('gra-afch', 'event', 'toggle')
 
     def send_json(self, id_, value):
+        """format a message and send it to the webapp
+        """
+
         def _message(id_, value):
             fmt = '{{ "id": "{}", "value": "{}" }}'
             return fmt.format(id_, value)
 
         # print(_message(id_, value))
         self._send_json(json.loads(_message(id_, value)))
-    
+
+    def seconds_clock(self):
+        """seconds clock
+        """
+
+        def seconds_proc():
+            def timer_():
+                thread_ = None
+                self.send_json('version',
+                               datetime.now().strftime('%B %d, %Y %H:%M:%S'))
+                thread_ = Timer(1, timer_)
+                thread_.start()
+
+            thread_ = Timer(1, timer_)
+            thread_.start()
+
+        clock_ = Thread(target = seconds_proc)
+        clock_.start()
+
+        return clock_
+
     def __init__(self, send_json):
+        """create Retro class
+        """
+
         def event_proc():
             while True:
                 ev = self.event.find_event('retro')
@@ -161,15 +198,4 @@ class Retro:
 
         self.event.register('retro', event_proc)
 
-        def time_proc():
-            def timer_():
-                thread_ = None
-                self.send_json('version', datetime.now().strftime('%B %d, %Y %H:%M:%S'))
-                thread_ = Timer(1, timer_)
-                thread_.start()
-
-            thread_ = Timer(1, timer_)
-            thread_.start()
-
-        self._clock = Thread(target = time_proc)
-        self._clock.start()
+        self._clock = self.seconds_clock()

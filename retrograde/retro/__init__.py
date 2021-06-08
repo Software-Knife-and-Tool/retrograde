@@ -58,7 +58,6 @@ class Retro:
     watchdog = None
 
     _conf_dict = None
-    _clock = None
     _send_json = None
 
     def config(self, module):
@@ -74,8 +73,9 @@ class Retro:
             conf_ =  self._conf.json
         elif 'watchdog' == module:
             conf_ = self.watchdog.config()
+        else:
+            assert False
 
-        assert conf_
         return conf_
 
     def path(self, path, file_name):
@@ -156,26 +156,6 @@ class Retro:
         # print(_message(id_, value))
         self._send_json(json.loads(_message(id_, value)))
 
-    def seconds_clock(self):
-        """seconds clock
-        """
-
-        def seconds_proc():
-            def timer_():
-                thread_ = None
-                self.send_json('version',
-                               datetime.now().strftime('%B %d, %Y %H:%M:%S'))
-                thread_ = Timer(1, timer_)
-                thread_.start()
-
-            thread_ = Timer(1, timer_)
-            thread_.start()
-
-        clock_ = Thread(target = seconds_proc)
-        clock_.start()
-
-        return clock_
-
     def __init__(self, send_json):
         """create Retro class
         """
@@ -197,5 +177,3 @@ class Retro:
         self.watchdog = watchdog.Watchdog(self)
 
         self.event.register('retro', event_proc)
-
-        self._clock = self.seconds_clock()

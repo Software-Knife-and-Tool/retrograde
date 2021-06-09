@@ -4,18 +4,19 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/ico" href="/static/icons/favicon_io/favicon.ico"/>
     <link rel="stylesheet" href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css">
     <link rel="stylesheet" href="static/css/retrograde.css">
     <link rel="stylesheet" href="static/css/styles.css">
+
     <title>Vortex Instrument Labs</title>
-    <link rel="shortcut icon" type="image/ico" href="/static/icons/favicon_io/favicon.ico"/>
   </head>
   <body>
     <div class="h-64">
       <div class="p-4 m-4 bg-green-600">
         <div>
           <img style="display:inline-block" src="static/icons/vortex.png" alt="VIL" width="150" height="150">
-          <div style="display:inline-block;font-family:DymaxionScript;font-size:68px;margin-left:1%"
+          <div style="display:inline-block;font-family:DymaxionScript;font-size:68px;margin-left:10%"
                class="text-2xl font-bold text-white">
             Retrograde&nbsp;&nbsp;Display
           </div>
@@ -24,7 +25,7 @@
              class="text-2xl font-bold text-black">
           Vortex&nbsp;&nbsp;Instrument&nbsp;&nbsp;Labs
         </div>
-        <h2 id="date" style="display:inline-block;font-family:DymaxionScript;font-size:20px;float:right"></h2>
+        <h2 id="date" style="display:inline-block;font-family:DymaxionScript;font-size:32px;float:right"> class="font-bold"</h2>
       </div>
     </div>
     <div class="p-4 m-4 bg-green-300 text-green-900 h-auto">
@@ -70,12 +71,9 @@
   <script type="text/javascript" charset="utf-8">
     var socket = io()
     socket.on('connect', function() {
-        // console.log('client connects')
         socket.send('json', {webapp: 'connects'})
     })
     socket.on('json', function(json, str) {
-        // console.log('client receives json:', end='');
-        // console.log(JSON.stringify(json))
         Retro.recv_json(json)
     })
 

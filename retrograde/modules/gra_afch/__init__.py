@@ -53,6 +53,7 @@ from time import localtime, strftime
 from datetime import datetime
 from threading import Thread, Lock, Timer
 
+
 from .ncs31x import Ncs31x
 
 class GraAfch:

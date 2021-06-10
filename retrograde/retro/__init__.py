@@ -60,6 +60,17 @@ class Retro:
     _conf_dict = None
     _send_json = None
 
+    def path(self, path, file_name):
+        """make an absolute path to module
+        """
+
+        return os.path.join(os.path.abspath(os.path.dirname(path)), file_name)
+
+    def host_config(self):
+        """if the host config file doesn't exist, create one
+        """
+
+
     def config(self, module):
         """get the config dict from the named module
         """
@@ -78,16 +89,9 @@ class Retro:
 
         return conf_
 
-    def path(self, path, file_name):
-        """make an absolute path to module
-        """
-
-        return os.path.join(os.path.abspath(os.path.dirname(path)), file_name)
-
     def events(self, module_name):
         """find module event configuration
         """
-
         return next((x for x in self._conf_dict['events']
                      if module_name in x), None)
 
@@ -167,9 +171,19 @@ class Retro:
 
         self._send_json = send_json
 
+        # static configuration
         self._conf_dict = []
         with open(self.path(__file__, '../conf.json'), 'r') as file:
             self._conf_dict = json.load(file)
+
+        host_dict_ = []
+        host_config_path_ = self.path(__file__, './host.json')
+
+        if os.path.exists(host_config_path_):
+            with open(host_config_path_, 'r') as file:
+                host_dict_ = json.load(file)
+
+        # add this stuff to _config_dict somehow
 
         # register modules
         self.event = event.Event(self)

@@ -8,7 +8,7 @@
 
 ##########
 ##
-## retrograde initialization
+## retrograde configuration
 ##
 ###########
 
@@ -18,11 +18,5 @@
 
 """
 
-from bluedot import BlueDot
-
-VERSION = '0.0.1'
-
-def bluetooth():
-    bd = BlueDot()
-    bd.wait_for_press()
-    print('You pressed the blue dot!')
+def _config():
+    pass

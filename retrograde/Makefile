@@ -1,6 +1,7 @@
 #
 #
 #
+
 .PHONY: lint venv
 SRCS = \
 	app.py         		\
@@ -18,8 +19,7 @@ venv:
 	@virtualenv venv
 
 install:
-	@sudo apt-get install bluetooth bluez libbluetooth-dev
-	@pip3 install wiringpi flask uWSGI flask-socketio eventlet pylint pybluez bluedot dbus-python
+	@pip3 install wiringpi flask uWSGI flask-socketio eventlet pylint dbus-python
 
 blank:
 	@sudo env "PATH=$(BIN)" "PYTHONPATH=$(PACKAGES)" python3 modules/gra_afch/blank.py
@@ -34,11 +34,7 @@ uwsgi:
 	@uwsgi --http :5000 --gevent 1000 --http-websockets --master --wsgi-file app.py --callable app
 
 lint:
-
 	@for i in $(SRCS); do		\
 	    echo -n $$i ": ";		\
 	    env "PATH=$(BIN)" "PYTHONPATH=$(PYTHONPATH):$(PACKAGES)" pylint $$i | egrep -v "^-";	\
 	done
-
-lint-summary:
-	@make lint | grep code

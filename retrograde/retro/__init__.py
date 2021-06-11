@@ -43,7 +43,6 @@ from threading import Thread, Lock, Timer
 
 import event
 import gra_afch
-import retro
 import watchdog
 
 class Retro:
@@ -56,6 +55,7 @@ class Retro:
     event = None
     gra_afch = None
     watchdog = None
+    retro = None
 
     _conf_dict = None
     _send_json = None
@@ -104,13 +104,11 @@ class Retro:
     def rotors(self):
         """find rotor definitions
         """
-
         return self._conf_dict['rotors']
 
     def template(self):
         """return webapp state
         """
-
         return {
                 'host': socket.gethostname(),
                 'modules': [ 'event',
@@ -121,38 +119,36 @@ class Retro:
                 'versions': { 'event': self.event.VERSION,
                               'gra-afch': self.gra_afch.VERSION,
                               'retro': self.VERSION,
-                              'watchdog': self.watchdog.VERSION
+                              'watchdog': self.watchdog.VERSION,
                 },
                 'configs': { 'event': self.config('event'),
                              'gra_afch': self.config('gra-afch'),
                              'retro': self._conf_dict,
                              'watchdog': self.config('watchdog')
                 },
+                'wap': 'not configured',
                 'date': datetime.now().strftime('%B %d, %Y %H:%M:%S ')
-                        + time.localtime().tm_zone,
+                       + time.localtime().tm_zone,
                 'serial': '0000001'
         }
 
     def exec_(self, op):
         """retro execs
         """
-
         print('retro.exec_')
         print(op)
 
     def recv_json(self, obj):
         """get an event from the webapp
         """
-
         if 'webapp' in obj:
             webapp = obj['webapp']
-            if 'toggle' in webapp:
+            if 'toggle-button' in webapp:
                 self.event.make_event('gra-afch', 'event', 'toggle')
 
     def send_json(self, id_, value):
         """format a message and send it to the webapp
         """
-
         def _message(id_, value):
             fmt = '{{ "id": "{}", "value": "{}" }}'
             return fmt.format(id_, value)
@@ -163,7 +159,6 @@ class Retro:
     def __init__(self, send_json):
         """create Retro class
         """
-
         def event_proc():
             while True:
                 ev = self.event.find_event('retro')

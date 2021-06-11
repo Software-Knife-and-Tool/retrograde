@@ -1,3 +1,9 @@
 [Unit]
 # Human readable name of the unit
 Description=Retrograde Display service
+
+[Install]
+WantedBy=default.target
+
+[Service]
+Restart=on-failure

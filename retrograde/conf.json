@@ -1,5 +1,4 @@
 {
-    "main": { },
     "events": [
         { "gra-afch":
             { "timer": { "event": { "exec": { "block": [

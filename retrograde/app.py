@@ -90,6 +90,7 @@ try:
                                template = _retro.template())
 
     socketio.run(app, host='0.0.0.0')
-except:
+
+except Exception:
     os.exit(1)
 

@@ -3,7 +3,10 @@
 Description=Retrograde Display service
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target
 
 [Service]
 Restart=on-failure
+ExecStart=/opt/retrograde/retro/run.sh
+User=root
+Group=root

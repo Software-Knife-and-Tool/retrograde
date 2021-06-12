@@ -6,8 +6,8 @@ SHELL=/bin/bash
 
 SYSTEMD = /usr/lib/systemd/system
 
-DIST    = /opt
-DEST    = retrograde
+DEST    = /opt
+DIST    = retrograde
 APP     = ..
 
 SRCDIRS = \
@@ -17,6 +17,7 @@ SRCDIRS = \
 	retro			\
 	static/css		\
 	static/icons		\
+        static/icons/favicon_io \
 	static/js		\
 	templates
 
@@ -26,32 +27,32 @@ help:
 	@echo clean
 
 release:
-	@install -d $(DEST)
-	@install -d $(DEST)/retro
+	@install -d $(DIST)
+	@install -d $(DIST)/retro
 
-	@install -m 755 ./run.sh $(DEST)/retro
-	@install -m 644 $(APP)/app.py $(DEST)/retro	
-	@install -m 644 $(APP)/conf.json $(DEST)/retro
+	@install -m 755 ./run.sh $(DIST)/retro
+	@install -m 644 $(APP)/app.py $(DIST)/retro	
+	@install -m 644 $(APP)/conf.json $(DIST)/retro
 	@for i in $(SRCDIRS); do	\
-	  install -d $(DEST)/retro/$$i;	\
-	  install -m 644 $(APP)/$$i/* $(DEST)/retro/$$i;	\
+	  install -d $(DIST)/retro/$$i;	\
+	  install -m 644 $(APP)/$$i/* $(DIST)/retro/$$i;	\
 	done
 
-	@virtualenv $(DEST)/venv
+	@virtualenv $(DIST)/venv
 
-	@(source $(DEST)/venv/bin/activate ; pip3 --quiet install $(PACKAGES))
+	@(source $(DIST)/venv/bin/activate ; pip3 --quiet install $(PACKAGES))
 
-	@tar cfz $(DEST)-0.0.1.tgz $(DEST)
-	@rm -rf $(DEST)
+	@tar cfz $(DIST)-0.0.1.tgz $(DIST)
+	@rm -rf $(DIST)
 
 clean:
-	@rm -rf $(DEST) $(DEST)-0.0.1.tgz
+	@rm -rf $(DIST) $(DIST)-0.0.1.tgz
 
 install:
-	@cat $(DEST)-0.0.1.tgz | (cd $(DIST) ; sudo tar xfz -)
+	@cat $(DIST)-0.0.1.tgz | (cd $(DEST) ; sudo tar xfz -)
 	@sudo cp ./retrograde.service $(SYSTEMD)
 	@systemctl --system list-unit-files | grep retrograde
 
 clobber: clean
-	@sudo rm -rf $(SYSTEMD)/retrograde.service $(DIST)/retrograde
-	@systemctl --system list-unit-files | grep retrograde
+	@sudo rm -rf $(SYSTEMD)/retrograde.service $(DEST)/retrograde
+	#@systemctl --system list-unit-files | grep retrograde

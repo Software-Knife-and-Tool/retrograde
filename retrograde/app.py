@@ -36,6 +36,7 @@ Misc variables:
 
 """
 
+import os
 import json
 
 from flask import Flask, render_template
@@ -51,40 +52,44 @@ app.config.from_mapping(
     # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
 )
 
-socketio = SocketIO(app)
+try:
+    socketio = SocketIO(app)
 
-@socketio.on('json')
-def send_json(obj):
-    # print('send json: ', end='')
-    # print(obj)
-    socketio.send(obj, obj)
+    @socketio.on('json')
+    def send_json(obj):
+        # print('send json: ', end='')
+        # print(obj)
+        socketio.send(obj, obj)
 
-@socketio.on('connect')
-def _connect():
-    def fmt_(id_, value):
-        fmt = '{{ "id": "{}", "value": "{}" }}'
-        return fmt.format(id_, value)
+    @socketio.on('connect')
+    def _connect():
+        def fmt_(id_, value):
+            fmt = '{{ "id": "{}", "value": "{}" }}'
+            return fmt.format(id_, value)
 
-    # print('server: webapp connects: ')
-    send_json(json.loads(fmt_('version', VERSION)))
+        # print('server: webapp connects: ')
+        send_json(json.loads(fmt_('version', VERSION)))
 
-_retro = Retro(send_json)
+    _retro = Retro(send_json)
 
-@socketio.on('disconnect')
-def _disconnect():
-    pass
-    # print('webapp disconnects: ')
+    @socketio.on('disconnect')
+    def _disconnect():
+        pass
+        # print('webapp disconnects: ')
 
-@socketio.on('json')
-def recv_json(json_):
-    # print('receive json: ', end='')
-    # print(str(json_))
-    _retro.recv_json(json_)
+    @socketio.on('json')
+    def recv_json(json_):
+        # print('receive json: ', end='')
+        # print(str(json_))
+        _retro.recv_json(json_)
 
-@app.route('/')
-def render():
-    return render_template('index.html',
-                           version = VERSION,
-                           template = _retro.template())
+    @app.route('/')
+    def render():
+        return render_template('index.html',
+                               version = VERSION,
+                               template = _retro.template())
 
-socketio.run(app, host='0.0.0.0')
+    socketio.run(app, host='0.0.0.0')
+except:
+    os.exit(1)
+

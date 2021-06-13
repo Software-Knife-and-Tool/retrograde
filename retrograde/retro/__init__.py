@@ -62,6 +62,8 @@ class Retro:
     _conf_dict = None
     _send_json = None
 
+    _start_time = None
+
     def path(self, path, file_name):
         """make an absolute path to module
         """
@@ -71,7 +73,6 @@ class Retro:
     def host_config(self):
         """if the host config file doesn't exist, create one
         """
-
 
     def config(self, module):
         """get the config dict from the named module
@@ -157,6 +158,9 @@ class Retro:
                 print('soft- reset')
             elif 'hard-reset' in webapp:
                 print('hard- reset')
+            elif 'uptime' in webapp:
+                tm = time.time() - self._start_time
+                self.send_json('uptime', int(tm))
             else:
                 assert False
                 
@@ -179,6 +183,7 @@ class Retro:
                 self.exec_(ev['retro'])
 
         self._send_json = send_json
+        self._start_time = time.time()
 
         # static configuration
         self._conf_dict = []

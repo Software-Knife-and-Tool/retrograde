@@ -11,7 +11,7 @@ var Retro = {
     
     seconds_clock: function () {
 
-        function clock () {
+        function heartbeat () {
             // one second intervals
 
             var now = new Date()
@@ -24,10 +24,11 @@ var Retro = {
             s = s < 10 ? '0' + s : s
 
             document.getElementById("date").innerHTML = h + ":" + m + ":" + s
-            setTimeout(function() { clock() }, 1000)
+            socket.emit('json', {webapp: 'uptime'})
+            setTimeout(function() { heartbeat() }, 1000)
         }
 
-        clock()
+        heartbeat()
     },
 
     recv_json: function (json) {

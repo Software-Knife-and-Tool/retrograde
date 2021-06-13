@@ -36,7 +36,7 @@ import socket
 import sys
 import time
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask_socketio import SocketIO
 from threading import Thread, Lock, Timer
@@ -159,8 +159,8 @@ class Retro:
             elif 'hard-reset' in webapp:
                 print('hard- reset')
             elif 'uptime' in webapp:
-                tm = time.time() - self._start_time
-                self.send_json('uptime', int(tm))
+                et = str(timedelta(seconds=time.time() - self._start_time))
+                self.send_json('uptime', et.rsplit('.')[0])
             else:
                 assert False
                 
@@ -171,7 +171,6 @@ class Retro:
             fmt = '{{ "id": "{}", "value": "{}" }}'
             return fmt.format(id_, value)
 
-        # print(_message(id_, value))
         self._send_json(json.loads(_message(id_, value)))
 
     def __init__(self, send_json):

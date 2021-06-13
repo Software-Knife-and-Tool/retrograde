@@ -41,6 +41,7 @@ from datetime import datetime
 from flask_socketio import SocketIO
 from threading import Thread, Lock, Timer
 
+import console
 import event
 import gra_afch
 import watchdog
@@ -52,6 +53,7 @@ class Retro:
     VERSION = '0.0.3'
 
     # modules
+    console = None
     event = None
     gra_afch = None
     watchdog = None
@@ -76,7 +78,10 @@ class Retro:
         """
 
         conf_ = None
-        if 'event' == module:
+
+        if 'console' == module:
+            conf_ = self.console.config()
+        elif 'event' == module:
             conf_ = self.event.config()
         elif 'gra-afch' == module:
             conf_ = self.gra_afch.config()
@@ -112,16 +117,19 @@ class Retro:
         return {
                 'host': socket.gethostname(),
                 'modules': [ 'event',
+                             'console',
                              'gra-afch',
                              'retro',
                              'watchdog'
                 ],
                 'versions': { 'event': self.event.VERSION,
+                              'console': self.console.VERSION,
                               'gra-afch': self.gra_afch.VERSION,
                               'retro': self.VERSION,
                               'watchdog': self.watchdog.VERSION,
                 },
                 'configs': { 'event': self.config('event'),
+                             'console': self.config('console'),
                              'gra_afch': self.config('gra-afch'),
                              'retro': self._conf_dict,
                              'watchdog': self.config('watchdog')
@@ -186,8 +194,8 @@ class Retro:
 
         # add this stuff to _config_dict somehow
 
-        # register modules
         self.event = event.Event(self)
+        self.console = console.Console(self)
         self.gra_afch = gra_afch.GraAfch(self)
         self.watchdog = watchdog.Watchdog(self)
 

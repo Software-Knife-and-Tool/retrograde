@@ -41,20 +41,20 @@
             <!-- Sidebar -->
             <div style="float:right" class="p-4 m-4 bg-grey-darkest bg-green-400 relative">
               <div class="xl:py-2">
-                <!-- retrograde -->
-                <div id="retrograde" class="group relative sidebar-item with-children">
+                <!-- status -->
+                <div id="status" class="group relative sidebar-item with-children">
                   <a href="#"
                      class="block xl:flex xl:items-center text-center xl:text-left shadow-light xl:shadow-none py-6 xl:py-2 xl:px-4 border-l-4 border-transparent hover:bg-green-300">
                     <img style="display:inline" src="static/icons/retrograde.png" alt="retrograde.png" width="24" height="24">
-                    <div style="display:inline" class="text-black text-xs">&nbsp;&nbsp;Retrograde</div>
+                    <div style="display:inline" class="text-black text-xs">&nbsp;&nbsp;status</div>
                   </a>
                 </div>
                 <!-- retro -->
-                <div id="retro" class="group relative sidebar-item with-children">
+                <div id="retrograde" class="group relative sidebar-item with-children">
                   <a href="#"
                      class="block xl:flex xl:items-center text-center xl:text-left shadow-light xl:shadow-none py-6 xl:py-2 xl:px-4 border-l-4 border-transparent hover:bg-green-300">
                     <img style="display:inline" src="static/icons/retro.png" alt="retro.png" width="24" height="24">
-                    <div style="display:inline" class="text-black text-xs">&nbsp;&nbsp;Retro</div>
+                    <div style="display:inline" class="text-black text-xs">&nbsp;&nbsp;retrograde</div>
                   </a>
                 </div>
                 <!-- events -->
@@ -62,7 +62,7 @@
                   <a href="#"
                      class="block xl:flex xl:items-center text-center xl:text-left shadow-light xl:shadow-none py-6 xl:py-2 xl:px-4 border-l-4 border-transparent hover:bg-green-300">
                     <img style="display:inline" src="static/icons/events.png" alt="events.png" width="24" height="24">
-                    <div style="display:inline" class="text-black text-xs">&nbsp;&nbsp;Events</div>
+                    <div style="display:inline" class="text-black text-xs">&nbsp;&nbsp;events</div>
                   </a>
                 </div>
                 <!-- gra-afch -->
@@ -78,7 +78,15 @@
                   <a href="#"
                      class="block xl:flex xl:items-center text-center xl:text-left shadow-light xl:shadow-none py-6 xl:py-2 xl:px-4 border-l-4 border-transparent hover:bg-green-300">
                     <img style="display:inline" src="static/icons/watchdog.png" alt="watchdog.png" width="28" height="28">
-                    <div style="display:inline" class="text-black text-xs">&nbsp;&nbsp;Watchdog</div>
+                    <div style="display:inline" class="text-black text-xs">&nbsp;&nbsp;watchdog</div>
+                  </a>
+                </div>
+                <!-- console -->
+                <div id="console" class="group relative sidebar-item with-children">
+                  <a href="#"
+                     class="block xl:flex xl:items-center text-center xl:text-left shadow-light xl:shadow-none py-6 xl:py-2 xl:px-4 border-l-4 border-transparent hover:bg-green-300">
+                    <img style="display:inline" src="static/icons/console.png" alt="console.png" width="28" height="28">
+                    <div style="display:inline" class="text-black text-xs">&nbsp;&nbsp;console</div>
                   </a>
                 </div>
                 <hr>
@@ -87,7 +95,7 @@
                   <a href="#"
                      class="block xl:flex xl:items-center text-center xl:text-left shadow-light xl:shadow-none py-6 xl:py-2 xl:px-4 border-l-4 border-transparent hover:bg-green-300">
                     <img style="display:inline" src="static/icons/toggle.png" alt="toggle.png" width="24" height="24">
-                    <div style="display:inline" class="text-black text-xs">&nbsp;&nbsp;Toggle</div>
+                    <div style="display:inline" class="text-black text-xs">&nbsp;&nbsp;toggle</div>
                   </a>
                 </div>
                 <!-- soft reset -->
@@ -111,7 +119,7 @@
           </div>
         </div>
       </div>
-      <div id="retrograde-panel" class="p-4 m-4 bg-green-300 text-green-900 h-auto">
+      <div id="status-panel" class="p-4 m-4 bg-green-300 text-green-900 h-auto">
         <div>
           <h1 style="display:inline"> Retrograde: running since </h1>
           <div style="display:inline">{{ template['date'] }}</div>
@@ -160,7 +168,7 @@
         </div>
       </div>
 
-      <div id="retro-panel" class="p-4 m-4 bg-green-300 text-green-900 h-auto">
+      <div id="retrograde-panel" class="p-4 m-4 bg-green-300 text-green-900 h-auto">
         <div>
           <h1 style="display:inline"> retro module: </h1>
           <div style="display:inline"> {{ template['versions']['retro'] }}</div>
@@ -174,6 +182,34 @@
         <div>
           <h2 style="display:inline" align=left>rotors: </h2>
           <div style="display:inline">{{ template['configs']['retro']['rotors'] }}</div>
+        </div>
+      </div>
+
+      <div id="console-panel" class="p-4 m-4 bg-green-300 text-green-900 h-auto">
+        <div>
+          <h1 style="display:inline"> console module: </h1>
+          <div style="display:inline"> {{ template['versions']['console'] }}</div>
+        </div>
+        <hr>
+        <br />
+        <div>
+          <h2 style="display:inline" align=left>configuration: </h2>
+          <div style="display:inline">{{ template['configs']['console'] }}</div>
+        </div>
+        <br />
+        <div class="mb-2 border-solid border-grey-light rounded border shadow-sm">
+          <div class="app min-h-screen min-v-screen p-8 bg-grey-lightest font-sans">
+            <div class="row sm:flex">
+              <div class="col sm:w-1/2">
+                <div class="box border rounded flex flex-col shadow bg-white">
+                  <div class="box__title bg-grey-lighter px-3 py-2 border-b">
+                    <h3 class="text-sm text-grey-darker font-medium">Console</h3>
+                  </div>
+                  <textarea rows="25" cols="50" class="text-grey-darkest flex-1 p-2 m-1 bg-transparent" name="tt">python here</textarea>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

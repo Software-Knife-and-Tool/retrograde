@@ -11,6 +11,7 @@ DIST    = retrograde
 APP     = ..
 
 SRCDIRS = \
+	modules/console		\
 	modules/event		\
 	modules/gra_afch	\
 	modules/watchdog	\

@@ -1,10 +1,11 @@
 var Retro = {
 
     panels: [
-        'retrograde-panel',
+        'console-panel',
         'event-panel',
         'gra-afch-panel',
-        'retro-panel',
+        'retrograde-panel',
+        'status-panel',
         'watchdog-panel'
     ],
     
@@ -48,15 +49,20 @@ var Retro = {
         document.getElementById('hard-reset').onclick =
             () => { socket.emit('json', {webapp: 'hard-reset'})}
 
+        document.getElementById('status').onclick =
+            () => {
+                    this.hide_panels()
+                    document.getElementById('status-panel').style.display = ''
+            }
         document.getElementById('retrograde').onclick =
             () => {
                     this.hide_panels()
                     document.getElementById('retrograde-panel').style.display = ''
             }
-        document.getElementById('retro').onclick =
+        document.getElementById('console').onclick =
             () => {
                     this.hide_panels()
-                    document.getElementById('retro-panel').style.display = ''
+                    document.getElementById('console-panel').style.display = ''
             }
         document.getElementById('events').onclick =
             () => {
@@ -75,7 +81,7 @@ var Retro = {
             }
 
         this.hide_panels()
-        document.getElementById('retrograde-panel').style.display = ''
+        document.getElementById('status-panel').style.display = ''
     },
     
     init: function () {

@@ -145,7 +145,13 @@ class Retro:
             webapp = obj['webapp']
             if 'toggle-button' in webapp:
                 self.event.make_event('gra-afch', 'event', 'toggle')
-
+            elif 'soft-reset' in webapp:
+                print('soft- reset')
+            elif 'hard-reset' in webapp:
+                print('hard- reset')
+            else:
+                assert False
+                
     def send_json(self, id_, value):
         """format a message and send it to the webapp
         """

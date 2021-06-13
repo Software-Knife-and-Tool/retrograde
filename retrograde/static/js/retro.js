@@ -43,6 +43,11 @@ var Retro = {
     ui: function () {
         document.getElementById('toggle-button').onclick =
             () => { socket.emit('json', {webapp: 'toggle-button'})}
+        document.getElementById('soft-reset').onclick =
+            () => { socket.emit('json', {webapp: 'soft-reset'})}
+        document.getElementById('hard-reset').onclick =
+            () => { socket.emit('json', {webapp: 'hard-reset'})}
+
         document.getElementById('retrograde').onclick =
             () => {
                     this.hide_panels()

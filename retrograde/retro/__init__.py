@@ -154,10 +154,14 @@ class Retro:
             webapp = obj['webapp']
             if 'toggle-button' in webapp:
                 self.event.make_event('gra-afch', 'event', 'toggle')
-            elif 'soft-reset' in webapp:
-                print('soft- reset')
-            elif 'hard-reset' in webapp:
-                print('hard- reset')
+            elif 'reboot' in webapp:
+                os.system('/usr/bin/sudo reboot')
+            elif 'restart' in webapp:
+                os.system('/usr/bin/systemctl restart retrograde')
+            elif 'power' in webapp:
+                os.system('/usr/sbin/shutdown now')
+            elif 'restore' in webapp:
+                os.system('/usr/sbin/shutdown now')
             elif 'uptime' in webapp:
                 et = str(timedelta(seconds=time.time() - self._start_time))
                 self.send_json('uptime', et.rsplit('.')[0])

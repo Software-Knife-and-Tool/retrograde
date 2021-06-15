@@ -41,6 +41,7 @@ release:
 
 	@virtualenv $(DIST)/venv
 
+	@sudo apt-get install wiringpi
 	@(source $(DIST)/venv/bin/activate ; pip3 --quiet install $(PACKAGES))
 
 	@tar cfz $(DIST)-0.0.1.tgz $(DIST)

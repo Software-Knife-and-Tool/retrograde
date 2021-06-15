@@ -53,7 +53,6 @@ from time import localtime, strftime
 from datetime import datetime
 from threading import Thread, Lock, Timer
 
-
 from .ncs31x import Ncs31x
 
 class GraAfch:
@@ -61,6 +60,8 @@ class GraAfch:
     """
 
     VERSION = '0.0.3'
+    _DEBOUNCE_DELAY = 150
+    _TOTAL_DELAY = 17
 
     _conf_dict = None
 
@@ -71,6 +72,8 @@ class GraAfch:
 
     _tube_mask = [255 for _ in range(8)]
     _toggle = None
+
+    event = None
 
 # def string_to_color(str_):
 #    def ctoi_(nib):#
@@ -158,43 +161,49 @@ class GraAfch:
     def buttons(self):
         """button events
         """
+        def nope():
+            pass
 
-        # auto pin = _MODE_BUTTON_PIN
-        self._ncs31x.init_pin(self._ncs31x.UP_BUTTON_PIN)
-        self._ncs31x.init_pin(self._ncs31x.DOWN_BUTTON_PIN)
-        self._ncs31x.init_pin(self._ncs31x.MODE_BUTTON_PIN)
+        def debounce_mode():
+            wiringpi.wiringPiISR(Ncs31x.MODE_BUTTON_PIN,
+                                 wiringpi.INT_EDGE_RISING, nope)
+            wiringpi.delay(self._DEBOUNCE_DELAY)
+            self.event.make_event('gra-afch', 'event', 'mode-button')
+            wiringpi.wiringPiISR(Ncs31x.MODE_BUTTON_PIN,
+                                 wiringpi.INT_EDGE_RISING, debounce_mode)
 
-#    wiringpi.wiringPiISR(_MODE_BUTTON_PIN, _INT_EDGE_RISING,
-#                    static unsigned long debounce = 0
-#
-#                    if ((wiringpi.millis() - debounce) > DEBOUNCE_DELAY):
-#
-#                    [&pin, mutex]() . void:
-#                      if (mutex.try_lock()):
-#                        pin = MODE_BUTTON_PIN
-#                        mutex.unlock()
-#                       else
-#                        yield()
-#                    )
-#
-#    wiringpi.wiringPiISR(UP_BUTTON_PIN, INT_EDGE_RISING,
-#                    [&pin, mutex]() . void:
-#                      pin = UP_BUTTON_PIN
-#                      mutex.unlock()
-#                    )
-#
-#    wiringpi.wiringPiISR(DOWN_BUTTON_PIN, INT_EDGE_RISING,
-#                    [&pin, mutex]() . void:
-#                      pin = DOWN_BUTTON_PIN
-#                      mutex.unlock()
-#                    )
+        def debounce_up():
+            wiringpi.wiringPiISR(Ncs31x.UP_BUTTON_PIN,
+                                 wiringpi.INT_EDGE_RISING, nope)
+            wiringpi.delay(self._DEBOUNCE_DELAY)
+            self.event.make_event('gra-afch', 'event', 'up-button')
+            wiringpi.wiringPiISR(Ncs31x.UP_BUTTON_PIN,
+                                 wiringpi.INT_EDGE_RISING, debounce_up)
+
+        def debounce_down():
+            wiringpi.wiringPiISR(Ncs31x.DOWN_BUTTON_PIN,
+                                 wiringpi.INT_EDGE_RISING, nope)
+            wiringpi.delay(self._DEBOUNCE_DELAY)
+            self.event.make_event('gra-afch', 'event', 'down-button')
+            wiringpi.wiringPiISR(Ncs31x.DOWN_BUTTON_PIN,
+                                 wiringpi.INT_EDGE_RISING, debounce_down)
+
+        self._ncs31x.init_pin(Ncs31x.UP_BUTTON_PIN)
+        self._ncs31x.init_pin(Ncs31x.DOWN_BUTTON_PIN)
+        self._ncs31x.init_pin(Ncs31x.MODE_BUTTON_PIN)
+
+        wiringpi.wiringPiISR(Ncs31x.MODE_BUTTON_PIN,
+                             wiringpi.INT_EDGE_RISING, debounce_mode)
+        wiringpi.wiringPiISR(Ncs31x.UP_BUTTON_PIN,
+                             wiringpi.INT_EDGE_RISING, debounce_up)
+        wiringpi.wiringPiISR(Ncs31x.DOWN_BUTTON_PIN,
+                             wiringpi.INT_EDGE_RISING, debounce_down)
 
     def exec_(self, op):
         """gra-afch operations
         """
         step = op['exec']
 
-        # this is wrong
         if not self._toggle:
             self._ncs31x.blank(not self._toggle)
         elif 'delay' in step:
@@ -233,10 +242,9 @@ class GraAfch:
     def _run_rotor(self, rotor_def):
         """run the rotor thread
         """
-
         def rotor_proc(rotor):
             self._dots = self._conf_dict['dots']
-            self._event.send_event(rotor)
+            self.event.send_event(rotor)
 
         if self._rotor:
             self._rotor._exit = True
@@ -253,8 +261,6 @@ class GraAfch:
             crank up the default rotor
         """
 
-        event = retro_.event
-
         def event_proc():
             """grab one of our events off the queue
 
@@ -266,7 +272,7 @@ class GraAfch:
             """
 
             while True:
-                event_ = self._event.find_event('gra-afch')['gra-afch']
+                event_ = self.event.find_event('gra-afch')['gra-afch']
                 type_ = list(event_)[0]
 
                 if type_ == 'exec':
@@ -274,11 +280,14 @@ class GraAfch:
 
                 elif type_ == 'event':
                     arg_ = event_['event']
-                    # print('event!: ', end='')
-                    # print(event_)
-                    # print(datetime.now().strftime('%H:%M:%S:%f'))
+                    if 'mode-button' == arg_:
+                        print('button mode')
+                    if 'up-button' == arg_:
+                        print('button up')
+                    if 'down-button' == arg_:
+                        print('button down')
 
-                    if 'toggle' == arg_:
+                    elif 'toggle' == arg_:
                         self._toggle = not self._toggle
                     elif 'timer' == arg_:
                         def timer_():
@@ -286,12 +295,12 @@ class GraAfch:
                     else:
                         for ev in retro_.events('gra-afch'):
                             if arg_ == list(ev)[0]:
-                                self._event.send_event(ev[arg_])
+                                self.event.send_event(ev[arg_])
                 else:
                     assert False
 
-        self._event = event
-        self._event.register('gra-afch', event_proc)
+        self.event = retro_.event
+        self.event.register('gra-afch', event_proc)
 
         self._conf_dict = []
         with open(retro_.path(__file__, 'conf.json'), 'r') as file:
@@ -301,4 +310,5 @@ class GraAfch:
         # does ncs31x need the configuration dictionary?
         self._ncs31x = Ncs31x(self._conf_dict)
 
+        self.buttons()
         self._run_rotor(retro_.find_rotor('default')['default'])

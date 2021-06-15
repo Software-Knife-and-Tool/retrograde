@@ -167,7 +167,7 @@ class Retro:
                 self.send_json('uptime', et.rsplit('.')[0])
             else:
                 assert False
-                
+
     def send_json(self, id_, value):
         """format a message and send it to the webapp
         """

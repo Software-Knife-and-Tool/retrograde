@@ -119,7 +119,6 @@ class Ncs31x:
 
     def read_rtc(self):
         """read the RTC
-
             return a struct_time()
         """
 

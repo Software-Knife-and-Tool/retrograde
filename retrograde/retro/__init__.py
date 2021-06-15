@@ -101,6 +101,13 @@ class Retro:
         return next((x for x in self._conf_dict['events']
                      if module_name in x), None)
 
+    def switch(self, list_, obj):
+        case = next(iter([x for x in list_ if x[0] in obj]))
+        if not case:
+            return None
+
+        return obj, case[1]()
+
     def find_rotor(self, rotor_name):
         """find rotor
         """
@@ -148,25 +155,33 @@ class Retro:
         print(op)
 
     def recv_json(self, obj):
-        """get an event from the webapp
+        """get an event from the webapp json
         """
         if 'webapp' in obj:
             webapp = obj['webapp']
-            if 'toggle-button' in webapp:
-                self.event.make_event('gra-afch', 'event', 'toggle')
-            elif 'reboot' in webapp:
-                os.system('/usr/bin/sudo reboot')
-            elif 'restart' in webapp:
-                os.system('/usr/bin/systemctl restart retrograde')
-            elif 'power' in webapp:
-                os.system('/usr/sbin/shutdown now')
-            elif 'restore' in webapp:
-                os.system('/usr/sbin/shutdown now')
-            elif 'uptime' in webapp:
-                et = str(timedelta(seconds=time.time() - self._start_time))
-                self.send_json('uptime', et.rsplit('.')[0])
-            else:
-                assert False
+
+            self.switch([
+                ( 'toggle-button',
+                  lambda : self.event.make_event('gra-afch',
+                                                 'event',
+                                                 'toggle')),
+                ( 'reboot',
+                  lambda : os.system('/usr/bin/sudo reboot')),
+                ( 'restart',
+                  lambda : os.system(
+                      '/usr/bin/systemctl restart retrograde')),
+                ( 'power',
+                  lambda : os.system('/usr/sbin/shutdown now')),
+                ( 'restore',
+                  lambda : os.system('/usr/sbin/shutdown now')),
+                ( 'uptime',
+                  lambda : self.send_json(
+                      'uptime',
+                      str(timedelta(seconds=time.time() -
+                                    self._start_time))
+                      .rsplit('.')[0]))
+                ],
+                webapp)
 
     def send_json(self, id_, value):
         """format a message and send it to the webapp

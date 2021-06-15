@@ -58,8 +58,8 @@ from .ncs31x import Ncs31x
 class GraAfch:
     """run the rotor thread
     """
-
     VERSION = '0.0.3'
+
     _DEBOUNCE_DELAY = 150
     _TOTAL_DELAY = 17
 
@@ -73,7 +73,9 @@ class GraAfch:
     _tube_mask = [255 for _ in range(8)]
     _toggle = None
 
-    event = None
+    # modules
+    _retro = None
+    _event = None
 
 # def string_to_color(str_):
 #    def ctoi_(nib):#
@@ -168,7 +170,7 @@ class GraAfch:
             wiringpi.wiringPiISR(Ncs31x.MODE_BUTTON_PIN,
                                  wiringpi.INT_EDGE_RISING, nope)
             wiringpi.delay(self._DEBOUNCE_DELAY)
-            self.event.make_event('gra-afch', 'event', 'mode-button')
+            self._event.make_event('gra-afch', 'event', 'mode-button')
             wiringpi.wiringPiISR(Ncs31x.MODE_BUTTON_PIN,
                                  wiringpi.INT_EDGE_RISING, debounce_mode)
 
@@ -176,7 +178,7 @@ class GraAfch:
             wiringpi.wiringPiISR(Ncs31x.UP_BUTTON_PIN,
                                  wiringpi.INT_EDGE_RISING, nope)
             wiringpi.delay(self._DEBOUNCE_DELAY)
-            self.event.make_event('gra-afch', 'event', 'up-button')
+            self._event.make_event('gra-afch', 'event', 'up-button')
             wiringpi.wiringPiISR(Ncs31x.UP_BUTTON_PIN,
                                  wiringpi.INT_EDGE_RISING, debounce_up)
 
@@ -184,7 +186,7 @@ class GraAfch:
             wiringpi.wiringPiISR(Ncs31x.DOWN_BUTTON_PIN,
                                  wiringpi.INT_EDGE_RISING, nope)
             wiringpi.delay(self._DEBOUNCE_DELAY)
-            self.event.make_event('gra-afch', 'event', 'down-button')
+            self._event.make_event('gra-afch', 'event', 'down-button')
             wiringpi.wiringPiISR(Ncs31x.DOWN_BUTTON_PIN,
                                  wiringpi.INT_EDGE_RISING, debounce_down)
 
@@ -203,32 +205,33 @@ class GraAfch:
         """gra-afch operations
         """
         step = op['exec']
-
-        if not self._toggle:
-            self._ncs31x.blank(not self._toggle)
-        elif 'delay' in step:
-            wiringpi.delay(int(step['delay']))
-        elif 'blank' in step:
-            self._ncs31x.blank(step['blank'])
-        elif 'back' in step:
-            self.update_backlight(step['back'])
-        elif 'dots' in step:
-            self._dots = step['dots']
-        elif 'mask' in step:
+ 
+        def mask_():
             # bits 0 and 6 are indicator lamps
             # rightmost number lamp is bit 1
             mask_ = step['mask']
             for i in range(8):
                 self._tube_mask[i] = 255 if mask_ & (2 ** i) else 0
-        elif 'date-time' in step:
-            self.display_string(
-                strftime(step['date-time'], self._ncs31x.read_rtc()))
-        elif 'display' in step:
-            self.display_string(step['display'])
-        elif 'sync' in step:
-            self._ncs31x.write_rtc(localtime())
+
+        def dots_():
+            self._dots = step['dots']
+
+        if not self._toggle:
+            self._ncs31x.blank(not self._toggle)
         else:
-            assert False
+            self._retro.switch(
+            [
+                ( 'delay',     lambda : wiringpi.delay(int(step['delay'])) ),
+                ( 'blank',     lambda : self._ncs31x.blank(step['blank']) ),
+                ( 'back',      lambda : self.update_backlight(step['back']) ),
+                ( 'dots',      lambda : dots_ ),
+                ( 'date-time', lambda : self.display_string(
+                    strftime(step['date-time'], self._ncs31x.read_rtc())) ),
+                ( 'display',   lambda : self.display_string(step['display']) ),
+                ( 'sync',      lambda : self._ncs31x.write_rtc(localtime()) ),
+                ( 'mask',      mask_ )
+            ],
+            step)
 
     def _events(self):
         if 'events' in self._conf_dict:
@@ -244,7 +247,7 @@ class GraAfch:
         """
         def rotor_proc(rotor):
             self._dots = self._conf_dict['dots']
-            self.event.send_event(rotor)
+            self._event.send_event(rotor)
 
         if self._rotor:
             self._rotor._exit = True
@@ -272,7 +275,7 @@ class GraAfch:
             """
 
             while True:
-                event_ = self.event.find_event('gra-afch')['gra-afch']
+                event_ = self._event.find_event('gra-afch')['gra-afch']
                 type_ = list(event_)[0]
 
                 if type_ == 'exec':
@@ -282,11 +285,10 @@ class GraAfch:
                     arg_ = event_['event']
                     if 'mode-button' == arg_:
                         print('button mode')
-                    if 'up-button' == arg_:
+                    elif 'up-button' == arg_:
                         print('button up')
-                    if 'down-button' == arg_:
+                    elif 'down-button' == arg_:
                         print('button down')
-
                     elif 'toggle' == arg_:
                         self._toggle = not self._toggle
                     elif 'timer' == arg_:
@@ -295,12 +297,14 @@ class GraAfch:
                     else:
                         for ev in retro_.events('gra-afch'):
                             if arg_ == list(ev)[0]:
-                                self.event.send_event(ev[arg_])
+                                self._event.send_event(ev[arg_])
                 else:
                     assert False
 
-        self.event = retro_.event
-        self.event.register('gra-afch', event_proc)
+        self._retro = retro_
+
+        self._event = retro_.event
+        self._event.register('gra-afch', event_proc)
 
         self._conf_dict = []
         with open(retro_.path(__file__, 'conf.json'), 'r') as file:

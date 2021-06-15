@@ -11,7 +11,6 @@
 ## retrograde initialization
 ##
 ###########
-
 """retro manages modules and webapp events
 
 Classes:
@@ -45,6 +44,7 @@ import console
 import event
 import gra_afch
 import watchdog
+
 
 class Retro:
     """the retro module
@@ -87,7 +87,7 @@ class Retro:
         elif 'gra-afch' == module:
             conf_ = self.gra_afch.config()
         elif 'retro' == module:
-            conf_ =  self._conf.json
+            conf_ = self._conf.json
         elif 'watchdog' == module:
             conf_ = self.watchdog.config()
         else:
@@ -98,8 +98,8 @@ class Retro:
     def events(self, module_name):
         """find module event configuration
         """
-        return next((x for x in self._conf_dict['events']
-                     if module_name in x), None)
+        return next((x for x in self._conf_dict['events'] if module_name in x),
+                    None)
 
     def switch(self, list_, obj):
         case = next(iter([x for x in list_ if x[0] in obj]))
@@ -111,8 +111,8 @@ class Retro:
     def find_rotor(self, rotor_name):
         """find rotor
         """
-        return next((x for x in self._conf_dict['rotors']
-                     if rotor_name in x), None)
+        return next((x for x in self._conf_dict['rotors'] if rotor_name in x),
+                    None)
 
     def rotors(self):
         """find rotor definitions
@@ -123,29 +123,30 @@ class Retro:
         """return webapp state
         """
         return {
-                'host': socket.gethostname(),
-                'modules': [ 'event',
-                             'console',
-                             'gra-afch',
-                             'retro',
-                             'watchdog'
-                ],
-                'versions': { 'event': self.event.VERSION,
-                              'console': self.console.VERSION,
-                              'gra-afch': self.gra_afch.VERSION,
-                              'retro': self.VERSION,
-                              'watchdog': self.watchdog.VERSION,
-                },
-                'configs': { 'event': self.config('event'),
-                             'console': self.config('console'),
-                             'gra_afch': self.config('gra-afch'),
-                             'retro': self._conf_dict,
-                             'watchdog': self.config('watchdog')
-                },
-                'wap': 'not configured',
-                'date': datetime.now().strftime('%B %d, %Y %H:%M:%S ')
-                       + time.localtime().tm_zone,
-                'serial': '0000001'
+            'host':
+            socket.gethostname(),
+            'modules': ['event', 'console', 'gra-afch', 'retro', 'watchdog'],
+            'versions': {
+                'event': self.event.VERSION,
+                'console': self.console.VERSION,
+                'gra-afch': self.gra_afch.VERSION,
+                'retro': self.VERSION,
+                'watchdog': self.watchdog.VERSION,
+            },
+            'configs': {
+                'event': self.config('event'),
+                'console': self.config('console'),
+                'gra_afch': self.config('gra-afch'),
+                'retro': self._conf_dict,
+                'watchdog': self.config('watchdog')
+            },
+            'wap':
+            'not configured',
+            'date':
+            datetime.now().strftime('%B %d, %Y %H:%M:%S ') +
+            time.localtime().tm_zone,
+            'serial':
+            '0000001'
         }
 
     def exec_(self, op):
@@ -161,27 +162,18 @@ class Retro:
             webapp = obj['webapp']
 
             self.switch([
-                ( 'toggle-button',
-                  lambda : self.event.make_event('gra-afch',
-                                                 'event',
-                                                 'toggle')),
-                ( 'reboot',
-                  lambda : os.system('/usr/bin/sudo reboot')),
-                ( 'restart',
-                  lambda : os.system(
-                      '/usr/bin/systemctl restart retrograde')),
-                ( 'power',
-                  lambda : os.system('/usr/sbin/shutdown now')),
-                ( 'restore',
-                  lambda : os.system('/usr/sbin/shutdown now')),
-                ( 'uptime',
-                  lambda : self.send_json(
-                      'uptime',
-                      str(timedelta(seconds=time.time() -
-                                    self._start_time))
-                      .rsplit('.')[0]))
-                ],
-                webapp)
+                ('toggle-button',
+                 lambda: self.event.make_event('gra-afch', 'event', 'toggle')),
+                ('reboot', lambda: os.system('/usr/bin/sudo reboot')),
+                ('restart',
+                 lambda: os.system('/usr/bin/systemctl restart retrograde')),
+                ('power', lambda: os.system('/usr/sbin/shutdown now')),
+                ('restore', lambda: os.system('/usr/sbin/shutdown now')),
+                ('uptime', lambda: self.send_json(
+                    'uptime',
+                    str(timedelta(seconds=time.time() - self._start_time)).
+                    rsplit('.')[0]))
+            ], webapp)
 
     def send_json(self, id_, value):
         """format a message and send it to the webapp

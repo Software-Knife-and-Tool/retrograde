@@ -11,7 +11,6 @@
 ## retrograde app
 ##
 ###########
-
 """app: retrograde entry point
 
     flask/socketio configuration
@@ -86,11 +85,10 @@ try:
     @app.route('/')
     def render():
         return render_template('index.html',
-                               version = VERSION,
-                               template = _retro.template())
+                               version=VERSION,
+                               template=_retro.template())
 
     socketio.run(app, host='0.0.0.0')
 
 except Exception:
     os.exit(1)
-

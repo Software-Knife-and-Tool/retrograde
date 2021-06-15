@@ -11,7 +11,6 @@
 ## gra-afch controller
 ##
 ###########
-
 """blank the display
 """
 

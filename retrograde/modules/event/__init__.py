@@ -11,7 +11,6 @@
 ## events
 ##
 ##########
-
 """Manage retrograde events
 
 See module gra-afch for display/RTC events.
@@ -58,6 +57,7 @@ from datetime import datetime
 #
 # sneak in a timestamp somehow?
 #
+
 
 class Event:
     """the event class
@@ -107,7 +107,7 @@ class Event:
         with self._modules_lock:
             lock_ = Lock()
             lock_.acquire()
-            thread_ = Thread(target = fn)
+            thread_ = Thread(target=fn)
             self._modules.append((module_, lock_, thread_))
 
             thread_.start()
@@ -119,7 +119,6 @@ class Event:
            the queue for module, wait until
            send_event releases the wait lock.
         """
-
         def in_queue():
             return next((x for x in self._queue if module in x), None)
 
@@ -217,7 +216,6 @@ class Event:
     def __init__(self, module):
         """create an event object
         """
-
         def event_proc():
             while True:
                 ev = self.find_event('event')

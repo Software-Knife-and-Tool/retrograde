@@ -1,8 +1,8 @@
 #
 #
 #
-
 .PHONY: lint venv
+
 SRCS = \
 	app.py         		\
 	modules/event/*.py	\
@@ -32,6 +32,9 @@ debug:
 
 profile:
 	@sudo env "PATH=$(BIN)" "PYTHONPATH=$(PACKAGES)" python3 -m cProfile -s cumtime gra_afch/blank.py
+
+format:
+	@yapf -i -vv $(SRCS)
 
 uwsgi:
 	@uwsgi --http :5000 --gevent 1000 --http-websockets --master --wsgi-file app.py --callable app

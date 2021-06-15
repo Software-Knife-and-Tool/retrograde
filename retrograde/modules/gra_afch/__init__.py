@@ -11,7 +11,6 @@
 ## gra-afch controller
 ##
 ###########
-
 """Manage GRA-AFCH NCS31X hardware
 
 See module ncs31x for display/clock interface.
@@ -55,6 +54,7 @@ from threading import Thread, Lock, Timer
 
 from .ncs31x import Ncs31x
 
+
 class GraAfch:
     """run the rotor thread
     """
@@ -77,47 +77,46 @@ class GraAfch:
     _retro = None
     _event = None
 
-# def string_to_color(str_):
-#    def ctoi_(nib):#
-#        nval = 0
-#
-#        if nib >= '0' & nib <= '9':
-#            nval = nib - '0'
-#        elif nib >= 'a' & nib <= 'f':
-#            nval = nib - 'a' + 10;
-#        elif (nib >= 'A' & nib <= 'F'):
-#            nval = nib - 'A' + 10
-#        else:
-#            nval = -1
-#        return nval
-#
-#    def channel_(msn, lsn):
-#        m = ctoi(msn);
-#        l = ctoi(lsn);
-#
-#        return (m < 0 | l < 0) if -1 else (m << 4) + l
-#
-#    r = channel(str[0], str[1])
-#    g = channel(str[2], str[3])
-#    b = channel(str[4], str[5])
-#
-#    return [r, g, b];
+    # def string_to_color(str_):
+    #    def ctoi_(nib):#
+    #        nval = 0
+    #
+    #        if nib >= '0' & nib <= '9':
+    #            nval = nib - '0'
+    #        elif nib >= 'a' & nib <= 'f':
+    #            nval = nib - 'a' + 10;
+    #        elif (nib >= 'A' & nib <= 'F'):
+    #            nval = nib - 'A' + 10
+    #        else:
+    #            nval = -1
+    #        return nval
+    #
+    #    def channel_(msn, lsn):
+    #        m = ctoi(msn);
+    #        l = ctoi(lsn);
+    #
+    #        return (m < 0 | l < 0) if -1 else (m << 4) + l
+    #
+    #    r = channel(str[0], str[1])
+    #    g = channel(str[2], str[3])
+    #    b = channel(str[4], str[5])
+    #
+    #    return [r, g, b];
 
     def update_backlight(self, color):
         """change the backlight color
         """
-
         def scale_(nval):
             return int(nval * (100 / 255))
 
-        self._ncs31x.backlight([scale_(color[0]),
-                                scale_(color[1]),
-                                scale_(color[2])])
+        self._ncs31x.backlight(
+            [scale_(color[0]),
+             scale_(color[1]),
+             scale_(color[2])])
 
     def display_string(self, digits):
         """stuff the tubes from decimal string
         """
-
         def tubes_(str_, start):
             tube_map_ = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
 
@@ -142,7 +141,8 @@ class GraAfch:
 
         def fmt_(nval, buffer, start, off):
             buffer[start] = (nval >> 24 & 0xff) & self._tube_mask[off]
-            buffer[start + 1] = ((nval >> 16) & 0xff) & self._tube_mask[off + 1]
+            buffer[start +
+                   1] = ((nval >> 16) & 0xff) & self._tube_mask[off + 1]
             buffer[start + 2] = ((nval >> 8) & 0xff) & self._tube_mask[off + 2]
             buffer[start + 3] = (nval & 0xff) & self._tube_mask[off + 3]
 
@@ -194,24 +194,24 @@ class GraAfch:
         self._ncs31x.init_pin(Ncs31x.DOWN_BUTTON_PIN)
         self._ncs31x.init_pin(Ncs31x.MODE_BUTTON_PIN)
 
-        wiringpi.wiringPiISR(Ncs31x.MODE_BUTTON_PIN,
-                             wiringpi.INT_EDGE_RISING, debounce_mode)
-        wiringpi.wiringPiISR(Ncs31x.UP_BUTTON_PIN,
-                             wiringpi.INT_EDGE_RISING, debounce_up)
-        wiringpi.wiringPiISR(Ncs31x.DOWN_BUTTON_PIN,
-                             wiringpi.INT_EDGE_RISING, debounce_down)
+        wiringpi.wiringPiISR(Ncs31x.MODE_BUTTON_PIN, wiringpi.INT_EDGE_RISING,
+                             debounce_mode)
+        wiringpi.wiringPiISR(Ncs31x.UP_BUTTON_PIN, wiringpi.INT_EDGE_RISING,
+                             debounce_up)
+        wiringpi.wiringPiISR(Ncs31x.DOWN_BUTTON_PIN, wiringpi.INT_EDGE_RISING,
+                             debounce_down)
 
     def exec_(self, op):
         """gra-afch operations
         """
         step = op['exec']
- 
+
         def mask_():
             # bits 0 and 6 are indicator lamps
             # rightmost number lamp is bit 1
             mask_ = step['mask']
             for i in range(8):
-                self._tube_mask[i] = 255 if mask_ & (2 ** i) else 0
+                self._tube_mask[i] = 255 if mask_ & (2**i) else 0
 
         def dots_():
             self._dots = step['dots']
@@ -220,18 +220,15 @@ class GraAfch:
             self._ncs31x.blank(not self._toggle)
         else:
             self._retro.switch(
-            [
-                ( 'delay',     lambda : wiringpi.delay(int(step['delay'])) ),
-                ( 'blank',     lambda : self._ncs31x.blank(step['blank']) ),
-                ( 'back',      lambda : self.update_backlight(step['back']) ),
-                ( 'dots',      lambda : dots_ ),
-                ( 'date-time', lambda : self.display_string(
-                    strftime(step['date-time'], self._ncs31x.read_rtc())) ),
-                ( 'display',   lambda : self.display_string(step['display']) ),
-                ( 'sync',      lambda : self._ncs31x.write_rtc(localtime()) ),
-                ( 'mask',      mask_ )
-            ],
-            step)
+                [('delay', lambda: wiringpi.delay(int(step['delay']))),
+                 ('blank', lambda: self._ncs31x.blank(step['blank'])),
+                 ('back', lambda: self.update_backlight(step['back'])),
+                 ('dots', lambda: dots_),
+                 ('date-time', lambda: self.display_string(
+                     strftime(step['date-time'], self._ncs31x.read_rtc()))),
+                 ('display', lambda: self.display_string(step['display'])),
+                 ('sync', lambda: self._ncs31x.write_rtc(localtime())),
+                 ('mask', mask_)], step)
 
     def _events(self):
         if 'events' in self._conf_dict:
@@ -253,7 +250,7 @@ class GraAfch:
             self._rotor._exit = True
             self._rotor.join()
 
-        self._rotor = Thread(target = rotor_proc, args = (rotor_def, ))
+        self._rotor = Thread(target=rotor_proc, args=(rotor_def, ))
         self._rotor.start()
 
     def __init__(self, retro_):
@@ -263,7 +260,6 @@ class GraAfch:
             read the config file
             crank up the default rotor
         """
-
         def event_proc():
             """grab one of our events off the queue
 
@@ -292,6 +288,7 @@ class GraAfch:
                     elif 'toggle' == arg_:
                         self._toggle = not self._toggle
                     elif 'timer' == arg_:
+
                         def timer_():
                             Timer(event_['timer'] / 1000, timer_).start()
                     else:

@@ -11,7 +11,6 @@
 ## watchdog module
 ##
 ###########
-
 """retrograde timers
 
 Classes:
@@ -48,6 +47,7 @@ import json
 from time import localtime, strftime
 from threading import Thread, Lock, Timer
 
+
 class Watchdog:
     """run the rotor thread
     """
@@ -65,9 +65,11 @@ class Watchdog:
         if 'timer' in step:
             print('timer')
             print(step)
+
             def timer_():
                 print('ding')
                 self.event.make_event('gra-afch', 'event', 'timer')
+
             Timer(step['timer'] / 1000, timer_).start()
 
             # Timer(step['timer'] / 1000,
@@ -92,7 +94,6 @@ class Watchdog:
             read the config file
             register with the event module
         """
-
         def _event_proc():
             """grab one of our events off the queue
 

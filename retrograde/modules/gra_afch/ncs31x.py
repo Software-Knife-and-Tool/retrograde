@@ -11,7 +11,6 @@
 ## NCS31X device driver
 ##
 ###########
-
 """
 
      Look at me! I'm a module docstring.
@@ -20,6 +19,7 @@
 
 import wiringpi
 from time import struct_time
+
 
 class Ncs31x:
     """NCS31X class
@@ -89,31 +89,23 @@ class Ncs31x:
 
            from a time struct
         """
-
         def _dec_to_bcd(val):
             return (int(val / 10) * 16) + (val % 10)
 
         wiringpi.wiringPiI2CWrite(self._gpio, self._I2C_FLUSH)
-        wiringpi.wiringPiI2CWriteReg8(self._gpio,
-                                      self._SECOND_REGISTER,
+        wiringpi.wiringPiI2CWriteReg8(self._gpio, self._SECOND_REGISTER,
                                       _dec_to_bcd(tm.tm_sec))
-        wiringpi.wiringPiI2CWriteReg8(self._gpio,
-                                      self._MINUTE_REGISTER,
+        wiringpi.wiringPiI2CWriteReg8(self._gpio, self._MINUTE_REGISTER,
                                       _dec_to_bcd(tm.tm_min))
-        wiringpi.wiringPiI2CWriteReg8(self._gpio,
-                                      self._HOUR_REGISTER,
+        wiringpi.wiringPiI2CWriteReg8(self._gpio, self._HOUR_REGISTER,
                                       _dec_to_bcd(tm.tm_hour))
-        wiringpi.wiringPiI2CWriteReg8(self._gpio,
-                                      self._WEEK_REGISTER,
+        wiringpi.wiringPiI2CWriteReg8(self._gpio, self._WEEK_REGISTER,
                                       _dec_to_bcd(tm.tm_wday))
-        wiringpi.wiringPiI2CWriteReg8(self._gpio,
-                                      self._DAY_REGISTER,
+        wiringpi.wiringPiI2CWriteReg8(self._gpio, self._DAY_REGISTER,
                                       _dec_to_bcd(tm.tm_mday))
-        wiringpi.wiringPiI2CWriteReg8(self._gpio,
-                                      self._MONTH_REGISTER,
+        wiringpi.wiringPiI2CWriteReg8(self._gpio, self._MONTH_REGISTER,
                                       _dec_to_bcd(tm.tm_mon))
-        wiringpi.wiringPiI2CWriteReg8(self._gpio,
-                                      self._YEAR_REGISTER,
+        wiringpi.wiringPiI2CWriteReg8(self._gpio, self._YEAR_REGISTER,
                                       _dec_to_bcd(tm.tm_year))
         wiringpi.wiringPiI2CWrite(self._gpio, self._I2C_FLUSH)
 
@@ -121,14 +113,12 @@ class Ncs31x:
         """read the RTC
             return a struct_time()
         """
-
         def _bcd_to_dec(val):
             return ((val >> 4) * 10) + (val & 0xf)
 
         def _hour12():
             tm_hour = _bcd_to_dec(
-                    wiringpi.wiringPiI2CReadReg8(self._gpio,
-                                                 self._HOUR_REGISTER))
+                wiringpi.wiringPiI2CReadReg8(self._gpio, self._HOUR_REGISTER))
             if self._conf_dict['12hour'] and tm_hour > 12:
                 tm_hour -= 12
 
@@ -136,29 +126,31 @@ class Ncs31x:
 
         wiringpi.wiringPiI2CWrite(self._gpio, self._I2C_FLUSH)
 
-        now = (_bcd_to_dec(wiringpi.wiringPiI2CReadReg8(self._gpio,
-                                                        self._YEAR_REGISTER))
-               + 1900,
-               _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(self._gpio,
-                                                        self._MONTH_REGISTER)),
-               _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(self._gpio,
-                                                        self._DAY_REGISTER)),
+        now = (_bcd_to_dec(
+            wiringpi.wiringPiI2CReadReg8(self._gpio, self._YEAR_REGISTER)) +
+               1900,
+               _bcd_to_dec(
+                   wiringpi.wiringPiI2CReadReg8(self._gpio,
+                                                self._MONTH_REGISTER)),
+               _bcd_to_dec(
+                   wiringpi.wiringPiI2CReadReg8(self._gpio,
+                                                self._DAY_REGISTER)),
                _hour12(),
-               _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(self._gpio,
-                                                        self._MINUTE_REGISTER)),
-               _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(self._gpio,
-                                                        self._SECOND_REGISTER)),
-               _bcd_to_dec(wiringpi.wiringPiI2CReadReg8(self._gpio,
-                                                        self._WEEK_REGISTER)),
-               1,
-               -1)
+               _bcd_to_dec(
+                   wiringpi.wiringPiI2CReadReg8(self._gpio,
+                                                self._MINUTE_REGISTER)),
+               _bcd_to_dec(
+                   wiringpi.wiringPiI2CReadReg8(self._gpio,
+                                                self._SECOND_REGISTER)),
+               _bcd_to_dec(
+                   wiringpi.wiringPiI2CReadReg8(self._gpio,
+                                                self._WEEK_REGISTER)), 1, -1)
 
         return struct_time(now)
 
     def display(self, tubes):
         """put the tube representation into the tubes
         """
-
         def rev_bits(nval):
             reversed_ = 0
             i = 0
@@ -209,9 +201,11 @@ class Ncs31x:
         """run the rotor thread
         """
 
-        if (wiringpi.millis() - self.func_mode.debounce) > self._DEBOUNCE_DELAY:
+        if (wiringpi.millis() -
+                self.func_mode.debounce) > self._DEBOUNCE_DELAY:
             print('MODE button was pressed.')
             self.func_mode.debounce = wiringpi.millis()
+
     func_mode.debounce = 0
 
     def func_up(self):
@@ -220,15 +214,18 @@ class Ncs31x:
         if (wiringpi.millis() - self.func_up.debounce) > self._DEBOUNCE_DELAY:
             print('UP button was pressed.')
             self.func_up.debounce = wiringpi.millis()
+
     func_up.debounce = 0
 
     def func_down(self):
         """run the rotor thread
         """
 
-        if (wiringpi.millis() - self.func_down.debounce) > self._DEBOUNCE_DELAY:
+        if (wiringpi.millis() -
+                self.func_down.debounce) > self._DEBOUNCE_DELAY:
             print('DOWN button was pressed.')
             self.func_down.debounce = wiringpi.millis()
+
     func_down.debounce = 0
 
     def __init__(self, conf_dict):

@@ -54,7 +54,6 @@ from threading import Thread, Lock, Timer
 
 from .ncs31x import Ncs31x
 
-
 class GraAfch:
     """run the rotor thread
     """
@@ -219,7 +218,7 @@ class GraAfch:
         if not self._toggle:
             self._ncs31x.blank(not self._toggle)
         else:
-            self._retro.switch(
+            self._retro.switch_in(
                 [('delay', lambda: wiringpi.delay(int(step['delay']))),
                  ('blank', lambda: self._ncs31x.blank(step['blank'])),
                  ('back', lambda: self.update_backlight(step['back'])),
@@ -276,27 +275,26 @@ class GraAfch:
 
                 if type_ == 'exec':
                     self.exec_(event_)
-
                 elif type_ == 'event':
-                    arg_ = event_['event']
-                    if 'mode-button' == arg_:
-                        print('button mode')
-                    elif 'up-button' == arg_:
-                        print('button up')
-                    elif 'down-button' == arg_:
-                        print('button down')
-                    elif 'toggle' == arg_:
-                        self._toggle = not self._toggle
-                    elif 'timer' == arg_:
 
-                        def timer_():
-                            Timer(event_['timer'] / 1000, timer_).start()
-                    else:
+                    def toggle_():
+                        self._toggle = not self._toggle
+
+                    arg_ = event_['event']
+                    v, _ = self._retro.switch([
+                        ('mode-button', lambda: print('button mode')),
+                        ('up-button', lambda: print('button up')),
+                        ('down-button', lambda: print('button down')),
+                        ('toggle', toggle_),
+                        ('timer',
+                         lambda: Timer(event_['timer'] / 1000, lambda: self.
+                                       _event.send_event('timer')).start())
+                    ], arg_)
+
+                    if not v:
                         for ev in retro_.events('gra-afch'):
                             if arg_ == list(ev)[0]:
                                 self._event.send_event(ev[arg_])
-                else:
-                    assert False
 
         self._retro = retro_
 

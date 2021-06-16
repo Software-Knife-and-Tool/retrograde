@@ -27,9 +27,6 @@ blank:
 run:
 	@sudo env "PATH=$(BIN)" "PYTHONPATH=$(PACKAGES)" python3 app.py
 
-debug:
-	@sudo env "PATH=$(BIN)" "PYTHONPATH=$(PACKAGES)" python3 debug.py
-
 profile:
 	@sudo env "PATH=$(BIN)" "PYTHONPATH=$(PACKAGES)" python3 -m cProfile -s cumtime gra_afch/blank.py
 

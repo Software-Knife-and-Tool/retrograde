@@ -77,21 +77,13 @@ class Retro:
     def config(self, module):
         """get the config dict from the named module
         """
+        v, conf_ = self.switch([('console', self.console.config),
+                                ('event', self.event.config),
+                                ('gra-afch', self.gra_afch.config),
+                                ('retro', lambda: self._conf.json),
+                                ('watchdog', self.watchdog.config)], module)
 
-        conf_ = None
-
-        if 'console' == module:
-            conf_ = self.console.config()
-        elif 'event' == module:
-            conf_ = self.event.config()
-        elif 'gra-afch' == module:
-            conf_ = self.gra_afch.config()
-        elif 'retro' == module:
-            conf_ = self._conf.json
-        elif 'watchdog' == module:
-            conf_ = self.watchdog.config()
-        else:
-            assert False
+        assert v
 
         return conf_
 
@@ -101,12 +93,20 @@ class Retro:
         return next((x for x in self._conf_dict['events'] if module_name in x),
                     None)
 
-    def switch(self, list_, obj):
+    def switch_in(self, list_, obj):
+        """find rotor
+        """
         case = next(iter([x for x in list_ if x[0] in obj]))
         if not case:
-            return None
+            return None, None
 
         return obj, case[1]()
+
+    def switch(self, list_, str_):
+        """find rotor
+        """
+        case = next(iter([x for x in list_ if x[0] == str_]))
+        return (str_, case[1]()) if case else (None, None)
 
     def find_rotor(self, rotor_name):
         """find rotor
@@ -161,7 +161,7 @@ class Retro:
         if 'webapp' in obj:
             webapp = obj['webapp']
 
-            self.switch([
+            self.switch_in([
                 ('toggle-button',
                  lambda: self.event.make_event('gra-afch', 'event', 'toggle')),
                 ('reboot', lambda: os.system('/usr/bin/sudo reboot')),
